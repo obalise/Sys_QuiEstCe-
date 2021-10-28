@@ -1,6 +1,6 @@
 # Sys_QuiEstCe-
 
-//////////////////////Projet: QUI ES?///////////////////////////////////
+//////////////////////Projet: QUI EST CE?///////////////////////////////////
 
 But du projet : Implementer le celebre jeux "QUI ES" sur un raspberry PI avec plusieur joueur(processus).
 

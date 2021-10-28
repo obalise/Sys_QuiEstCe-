@@ -39,30 +39,46 @@ On privilégiera la performance et l'économie des ressources. La vitesse d'exec
 -asynchrone ou pas, les joueurs attendent t-il dans un lobby que la partie se lance pour tout le monde ? Comme pour le Kahoot ? Ou alors c'est en différé
 ```
 - Système d'élimination des personnages du "Qui est-ce ?"
-- Avoir un classement en mode "multijoueur"
+- Avoir un classement en mode "multijoueur" 
+- 
 
 
 ## Fonctionnalités secondaires
 
 - Lors du jeu, pouvoir choisir un personnage parmi ceux restant, si faux cela viendrait avec une pénalité de points (ou de temps plutôt)
 - Mode de jeu Vs entre deux joueurs, donc avec la possibilité de choisir son propre personnage
+- Pouvoir modifier la base de données
 - Pouvoir changer la base de données pour avoir d'autres personnages avec d'autres caractéristiques. *Exemple: perso de Street fighter*
-- Avoir une GUI
+- Avoir une GUI 
+```diff
+Elle devra passer par SSH, il faudra surement demander alors à l'utilisateur de télecharger un logiciel comme PuTTY
+```
+- Ajout de statistiques
+
 
 
 # Conception Préliminaire
 
 ## Choix de l'architecture
 
+Nous travaillerons avec une architecture [Serveur-Client](https://fr.wikipedia.org/wiki/Client-serveur). 
+
+![image](https://user-images.githubusercontent.com/57157757/139318258-5e23cab2-f699-42d8-bf76-bb7acc798835.png)
+
+La communication entre Serveur et Client se fera à l'aide de "pipes". En effet, ces deux entités seront toutes deux sur la même machine (un Raspeberry pie) et nous n'aurons pas besoin de nous reposer sur l'utilisation de sockets qui est plus complexe. 
+
+Afin que les utilisateurs puissent accèder à distance à la partie Client, nous nous servirons du protocole de communication sécurisée [SSH](https://fr.wikipedia.org/wiki/Secure_Shell). 
+
 ## Découpage du travail en module 
 
-Permet aux développeurs de travailler en parallèles 
+Cela permettra aux développeurs de travailler en parallèles.
 
 
 # Conception Détaillée
 
 ## Mise en forme de la base de données
 
+La base de données sera un unique fichier texte 
 
 
  

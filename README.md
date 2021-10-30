@@ -14,3 +14,5 @@ Equipe :
 -->Adrien KAISER: Commercial : Respo Pitch / Vente
 -->Julien TERRIER: Admin Sys : Respo machine (Rpi si dispo) / RZO / Sécu etc …
 
+TODO:
+créer un makefile pour la compilation

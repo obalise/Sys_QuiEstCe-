@@ -4,21 +4,37 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <regex.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+
 
 const char* filename = "eleve.txt";
 
-void launch_regex();
 
+/*Prototype*/
+void launch_regex();
 void return_tableau(char *tableau);
+int serveur(void);
+
+
 
 int main(int argc, char *argv[])
 {
 
-    char tableau[30][80];
-    return_tableau(*tableau);
-    launch_regex();
+	char tableau[30][80];
+	int status=1;
 
-    return 0;
+    	return_tableau(*tableau);
+
+	while(status)
+	{
+		status = serveur();
+	
+    		launch_regex();
+	}
+
+    	return 0;
 }
 
 void launch_regex(){
@@ -54,7 +70,7 @@ void launch_regex(){
 void return_tableau(char *tableau){
     FILE* in_file = NULL;
 
-    chdir("../BaseDeDonne");
+    chdir("./BaseDeDonne");
 
     in_file = fopen(filename, "r+");
     char ligne[80];
@@ -69,6 +85,64 @@ void return_tableau(char *tableau){
         }
         // On l'écrit dans le fichier
         fclose(in_file);
+
+	chdir("../.");
     }
 
+}
+
+int serveur(void)
+{
+	int pid,descR,descW,nb,len,test;
+	int etudiant=0;
+    	char buf[80], prenom[50];
+	char main[30]= "./pipe/main";
+	char chemin[9]= "./pipe/";
+	
+
+    	unlink(main);
+    	mkfifo(main,0666); // creation du pipe fifo
+   	do
+	{ 
+    		descR=open(main,O_RDONLY); //ouverture du pipe
+    		nb=read(descR,buf,80); // Ecoute sur le pipe main par bloc de 80 max
+    		
+		etudiant++;
+
+    		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
+    		buf[nb]='\0';
+    		printf("Client: %s\n",buf);
+    	
+		strcpy(prenom, buf);
+
+		test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
+
+		if(test==0)
+		{
+	
+			/****************Gestion processus***********************/
+			/* on cree un processus des qu'il y a un nouveau client */
+    			pid=fork();
+	
+    			if(pid == 0)
+			{
+        			//execv("ici la modularite", NULL);
+				printf("on est dans le fils de %s\n",prenom);
+				
+				strcat(chemin,prenom);
+	
+    				unlink(chemin);
+    				mkfifo(chemin,0755); // creation du pipe client
+		
+    				descW=open(chemin,O_WRONLY); //ouverture du pipe
+    				write(descW,prenom,20); // Ecriture sur le pipe client
+				exit(0);
+			}
+    			wait(NULL); // on attende la fin du processus fils
+		}
+		/**************Fin gestion processus*********************/
+	}while(etudiant!=4);
+    	close(descR); // fermeture du descripteur lecture
+    
+    	exit(0);
 }

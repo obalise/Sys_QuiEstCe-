@@ -70,7 +70,7 @@ void launch_regex(){
 void return_tableau(char *tableau){
     FILE* in_file = NULL;
 
-    chdir("../BaseDeDonne");
+    chdir("./BaseDeDonne");
 
     in_file = fopen(filename, "r+");
     char ligne[80];
@@ -85,6 +85,8 @@ void return_tableau(char *tableau){
         }
         // On l'écrit dans le fichier
         fclose(in_file);
+
+	chdir("../.");
     }
 
 }

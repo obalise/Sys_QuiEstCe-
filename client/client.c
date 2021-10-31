@@ -17,6 +17,8 @@ int main(void)
 	char main[30]= "../pipe/main";
 	char buf[80];
 
+	//chdir(../.); //Pour le faire fonctionner sur les autres machines
+
 	/* On demande le nom du client, qui est tu ?*/
 	printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
 	printf("Quel est votre Prenom?\n");
@@ -25,6 +27,7 @@ int main(void)
 	//strcpy(prenomcpy,prenom); //artifice sinon on coupe les deux premier caractères du tableau ???	
 	strcat(chemin,prenom);
 
+	/* penser à ajouter main entre ""*/
     	descW=open(main,O_WRONLY); // on ouvre le pipe main en ecriture
     	write(descW,prenom,20); // on ecrit le nom du nouveau client
     
@@ -35,5 +38,7 @@ int main(void)
 	nb=read(descR,buf,80);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
+	sleep(30);
 	close(descR);
 }
+

@@ -11,13 +11,10 @@
 
 const char* filename = "eleve.txt";
 
-
 /*Prototype*/
 void launch_regex();
 void return_tableau(char *tableau);
 int serveur(void);
-
-
 
 int main(int argc, char *argv[])
 {
@@ -88,7 +85,6 @@ void return_tableau(char *tableau){
 
 	chdir("../.");
     }
-
 }
 
 int serveur(void)

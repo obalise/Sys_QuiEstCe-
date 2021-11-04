@@ -1,11 +1,11 @@
 :BIAUTMathieu:vert:chatain:faible:
 :CHAIRATFrederic:lunettes:grisonant:fort:
 :FERRANDRemi:marron:brun:moyen:
-:GACHONMaxime:lunettes:chatain:alcolique:
+:GACHONMaxime:lunettes:chatain:alcoolique:
 :GINOUXThomas:marron:chatain:moyen:
 :HAMAZEddy:marron:brun:inexistant:
 :HUETAnakin:marron:brun:moyen:
-:KAISERAdrien:marron:chatain:alcolique:
+:KAISERAdrien:marron:chatain:alcoolique:
 :LAPOTREGuillaume:bleu:blond:moyen:
 :MAHEOlivier:bleu:blond:alcolique:
 :MANDOBALUEmmanuel:lunettes:boucle:moyen:

@@ -7,21 +7,38 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <errno.h>
 
 
 const char* filename = "eleve.txt";
 
 /*Prototype*/
 void launch_regex();
+
+void return_tableau(char tableau[30][80]);
 void return_tableau(char *tableau);
 int serveur(void);
+
+void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80]);
 
 int main(int argc, char *argv[])
 {
 
-	char tableau[30][80];
-	int status=1;
+    char tableau[30][80];
+    char personnageselect[80];
+    return_tableau(tableau);
+    
+    
+    for(int i = 0; i < 1; i++)
+    {
+        puts(tableau[i]);
 
+    }
+    
+    selection_aleatoire_perso(tableau, personnageselect);
+    //launch_regex();
+
+    return 0;
     	return_tableau(*tableau);
 
 	while(status)
@@ -64,7 +81,20 @@ void launch_regex(){
     regfree(&regex);
 }
 
-void return_tableau(char *tableau){
+void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80])
+{
+	srand(getpid());
+	int numerolignealeatoire = (rand() % 20);
+	printf("Le nombre aléatoire entre 1 et 19 est %d!\n", numerolignealeatoire);
+	strcpy(personnageselect, tableau[numerolignealeatoire]);
+	printf("Ligne choisie est : %s", personnageselect);
+	
+}
+
+void return_tableau(char tableau[30][80]){
+	
+	errno = 0;
+	
     FILE* in_file = NULL;
 
     chdir("./BaseDeDonne");
@@ -73,18 +103,26 @@ void return_tableau(char *tableau){
     char ligne[80];
     int i = 0;
 
-    if (in_file != NULL)
+    if (in_file == NULL)
     {
+		printf("Echec ouverture fichier !\n");
+		printf("Errno: %d \n", errno);
+		exit(0);
+	}
+	else{
         while(fgets(ligne, 80, in_file) != NULL) {
             printf("%s", ligne);
-            strcpy(&tableau[i],ligne);
+            strcpy(tableau[i],ligne);
             i++;
+            //puts(&tableau[i]);
         }
         // On l'écrit dans le fichier
         fclose(in_file);
 
 	chdir("../.");
     }
+    printf("Sortie du fichier\n");
+}
 }
 
 int serveur(void)

@@ -15,6 +15,7 @@ int main(void)
 	//char prenomcpy[50];
 	char buf[80];
 	char tableau[30][80];
+	char personnageselect[80];
 
 	chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
@@ -47,6 +48,10 @@ int main(void)
         puts(tableau[i]); 
     }
 	
+	read(descR, personnageselect, sizeof(char)*80);
+	
+	printf("Personnage selectionné -> ");
+    puts(personnageselect); 
 	
 	sleep(30);
 	close(descR);

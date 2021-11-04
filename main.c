@@ -26,14 +26,13 @@ int main(int argc, char *argv[])
     char tableau[30][80];
     char personnageselect[80];
     return_tableau(tableau);
-    
-    
+
     for(int i = 0; i < 1; i++)
     {
         puts(tableau[i]);
 
     }
-    
+
     selection_aleatoire_perso(tableau, personnageselect);
     //launch_regex();
     int status = 1;

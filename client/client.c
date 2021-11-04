@@ -10,10 +10,11 @@
 
 int main(void)
 {
-    	int descW,descR,nb;
+    int descW,descR,nb;
 	char prenom[50];
-	char prenomcpy[50];
+	//char prenomcpy[50];
 	char buf[80];
+	char tableau[30][80];
 
 	chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
@@ -31,10 +32,22 @@ int main(void)
 	close(descW); // on ferme le descripteur
 	sleep(1);
 
-    	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
-	nb=read(descR,buf,80);
+    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
+	nb=read(descR,buf,20);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
+	
+	
+	read(descR, tableau, sizeof(char)*30*80);
+	
+	//Voyons voir avec ce for si le tableau s'est rempli correctement
+	    for(int i = 0; i < 30; i++)
+    {
+        printf("%d -> ", i );
+        puts(tableau[i]); 
+    }
+	
+	
 	sleep(30);
 	close(descR);
 }

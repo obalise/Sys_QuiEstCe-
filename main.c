@@ -16,7 +16,7 @@ const char* filename = "eleve.txt";
 void launch_regex();
 
 void return_tableau(char tableau[30][80]);
-int serveur(void);
+int serveur(char tableau[30][80]);
 
 void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80]);
 
@@ -28,11 +28,7 @@ int main(int argc, char *argv[])
     return_tableau(tableau);
     
     
-    for(int i = 0; i < 1; i++)
-    {
-        puts(tableau[i]);
 
-    }
     
     selection_aleatoire_perso(tableau, personnageselect);
     //launch_regex();
@@ -40,7 +36,7 @@ int main(int argc, char *argv[])
 
 	while(status)
 	{
-		status = serveur();
+		status = serveur(tableau);
 	
     		launch_regex();
 	}
@@ -121,11 +117,11 @@ void return_tableau(char tableau[30][80]){
     printf("Sortie du fichier\n");
 }
 
-int serveur(void)
+int serveur(char tableau[30][80])
 {
-	int pid,descR,descW,nb,len,test;
+	int pid,descR,descW,nb,test;
 	int etudiant=0;
-    	char buf[80], prenom[50];
+    char buf[80], prenom[50];
 	char main[30]= "./pipe/main";
 	char chemin[9]= "./pipe/";
 	
@@ -166,6 +162,9 @@ int serveur(void)
 		
     				descW=open(chemin,O_WRONLY); //ouverture du pipe
     				write(descW,prenom,20); // Ecriture sur le pipe client
+    				
+    				write(descW, tableau, sizeof(char)*30*80);
+    				
 				exit(0);
 			}
     			wait(NULL); // on attende la fin du processus fils

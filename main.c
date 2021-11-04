@@ -16,7 +16,6 @@ const char* filename = "eleve.txt";
 void launch_regex();
 
 void return_tableau(char tableau[30][80]);
-void return_tableau(char *tableau);
 int serveur(void);
 
 void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80]);
@@ -37,9 +36,7 @@ int main(int argc, char *argv[])
     
     selection_aleatoire_perso(tableau, personnageselect);
     //launch_regex();
-
-    return 0;
-    	return_tableau(*tableau);
+    int status = 1;
 
 	while(status)
 	{
@@ -122,7 +119,6 @@ void return_tableau(char tableau[30][80]){
 	chdir("../.");
     }
     printf("Sortie du fichier\n");
-}
 }
 
 int serveur(void)

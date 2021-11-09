@@ -13,11 +13,8 @@
 const char* filename = "eleve.txt";
 
 /*Prototype*/
-void launch_regex();
-
 void return_tableau(char tableau[30][80]);
 int serveur(char tableau[30][80], char personnageselect[80]);
-
 void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80]);
 
 int main(int argc, char *argv[])
@@ -34,41 +31,10 @@ int main(int argc, char *argv[])
 	while(status)
 	{
 		status = serveur(tableau, personnageselect);
-	
-    		launch_regex();
+
 	}
 
     	return 0;
-}
-
-void launch_regex(){
-    regex_t regex;
-    int reti;
-    char msgbuf[100];
-
-/* Compile regular expression */
-    reti = regcomp(&regex, "^a[[:alnum:]]", 0);
-    if (reti) {
-        fprintf(stderr, "Could not compile regex\n");
-        exit(1);
-    }
-
-/* Execute regular expression */
-    reti = regexec(&regex, "abc", 0, NULL, 0);
-    if (!reti) {
-        puts("Match");
-    }
-    else if (reti == REG_NOMATCH) {
-        puts("No match");
-    }
-    else {
-        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-        exit(1);
-    }
-
-/* Free memory allocated to the pattern buffer by regcomp() */
-    regfree(&regex);
 }
 
 void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80])

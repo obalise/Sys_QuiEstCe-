@@ -1,4 +1,4 @@
-#include<fcntl.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -9,19 +9,19 @@
 #include <sys/stat.h>
 #include <regex.h>
 
-void menu (char*);
+void menu (char personnageselect[80], char tableau[20][80]);
 void strcpy_pointeur(char *, char);
 int launch_regex(char *, char *);
+void affichagePersonnages(char tableau[20][80]);
 
-int main(void)
-{
+
+int main(void){
     int descW,descR,nb;
     char prenom[50];
     //char prenomcpy[50];
     char buf[80];
-    char tableau[30][80];
+    char tableau[20][80];
     char personnageselect[80];
-    char *elu;
 
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
@@ -45,10 +45,10 @@ int main(void)
     printf("Retour serveur: %s\n",buf);
 
 
-    read(descR, tableau, sizeof(char)*30*80);
+    read(descR, tableau, sizeof(char)*20*80);
 
     //Voyons voir avec ce for si le tableau s'est rempli correctement
-    for(int i = 0; i < 30; i++)
+    for(int i = 0; i < 20; i++)
     {
         printf("%d -> ", i );
         puts(tableau[i]);
@@ -56,21 +56,18 @@ int main(void)
 
     //read(descR, personnageselect, sizeof(char)*80);
     read(descR, personnageselect, sizeof(char)*80);
-    elu = personnageselect;
 
     printf("Personnage selectionné -> ");
     puts(personnageselect);
-    printf("\n%s",elu);
 
-    menu(elu);
+    menu(personnageselect, tableau);
     sleep(30);
     close(descR);
 }
 
-void menu(char *elu)
-{
+void menu(char personnageselect[80], char tableau[20][80]){
     printf("Personnage selectionné -> ");
-    printf("%s",elu);
+    printf("%s",personnageselect);
 
     int i = 0 ;
     char chaine_recherche[80];
@@ -89,8 +86,12 @@ void menu(char *elu)
         scanf("%d",&i);
         switch(i)
         {
-            case 0: break;
+            case 0: 
+				exit(0);
+            break;
             case 1:
+				printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+				affichagePersonnages(tableau);
                 i = 0;
 
                 do{
@@ -216,7 +217,7 @@ void menu(char *elu)
                     }
 
                     p_chaine_recherche = chaine_recherche;
-                    status = launch_regex(elu,chaine_recherche);
+                    status = launch_regex(personnageselect,chaine_recherche);
                     if ((status == 0) || (status == 1)) {
                         if (status == 0) {
                             printf("Votre personnage a la caractériqtique %s\n", p_chaine_recherche);
@@ -238,13 +239,13 @@ void menu(char *elu)
                 recherche_personnage = true;
                 printf("Quel est le nom du personnage mystere\n");
                 scanf("%s", chaine_recherche);
-                status = launch_regex(elu,chaine_recherche);
+                status = launch_regex(personnageselect,chaine_recherche);
                 if ((status == 0) || (status == 1)){
                     if (status == 0){
                         printf("Personnage trouve%s\n", p_chaine_recherche);
                     }
                     if (status == 1){
-                        printf("Personnage faux, Vous pourez rependre votre parti dans 3sec%s\n", p_chaine_recherche);
+                        printf("Personnage faux, Vous pourez rependre votre parti dans 3s%s\n", p_chaine_recherche);
                         sleep(3);
                     }
                 }
@@ -255,7 +256,7 @@ void menu(char *elu)
                 break;
             case 3:
                 i = 0;
-                // fonction affiche tableau
+                affichagePersonnages(tableau);
                 break;
             default:
                 break;
@@ -301,4 +302,16 @@ int launch_regex(char *elu, char *p_chaine_recherche){
 /* Free memory allocated to the pattern buffer by regcomp() */
     regfree(&regex);
     return status;
+}
+
+
+void affichagePersonnages(char tableau[20][80]){
+	
+	printf("Liste des Personnages et de leurs caractéristiques: \n");
+	 for(int i = 0; i < 19; i++)
+    {
+        printf("%d -> ", i );
+        puts(tableau[i]);
+    }
+	
 }

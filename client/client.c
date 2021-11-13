@@ -11,9 +11,8 @@ void menu ();
 
 int main(void)
 {
-    int descW,descR,nb;
+    	int descW,descR,nb;
 	char prenom[50];
-	//char prenomcpy[50];
 	char buf[80];
 	char tableau[30][80];
 	char personnageselect[80];
@@ -25,16 +24,16 @@ int main(void)
 	printf("Quel est votre Prenom?\n");
 	scanf("%s", prenom);
 	
-	//strcpy(prenomcpy,prenom); //artifice sinon on coupe les deux premier caractères du tableau ???
-
+	signal(SIGINT, SIG_IGN); // ingnore ctrl+c
+	
 	/* penser à ajouter main entre ""*/
     	descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
     	write(descW,prenom,20); // on ecrit le nom du nouveau client
     
-	close(descW); // on ferme le descripteur
+	//close(descW); // on ferme le descripteur
 	sleep(1);
 
-    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
+    	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
 	nb=read(descR,buf,20);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
@@ -42,20 +41,27 @@ int main(void)
 	
 	read(descR, tableau, sizeof(char)*30*80);
 	
+	printf("Voici la liste des eleves, se trouve parmi cette liste l'eleve mystère, a vous de le retrouvez\n");
 	//Voyons voir avec ce for si le tableau s'est rempli correctement
-	    for(int i = 0; i < 30; i++)
-    {
-        printf("%d -> ", i );
-        puts(tableau[i]); 
-    }
+	for(int i = 0; i < 30; i++)
+    	{
+        	printf("%d -> ", i );
+        	puts(tableau[i]); 
+    	}
 	
 	read(descR, personnageselect, sizeof(char)*80);
 	
 	printf("Personnage selectionné -> ");
-    puts(personnageselect); 
+    	puts(personnageselect); 
 	
-	sleep(30);
+	menu();
+	
+	sleep(1);
 	close(descR);
+	write(descW,"_vainqueur_",12); // on ecrit de le pipe main si on a trouvé l'eleve mystere
+	close(descW); // on ferme le descripteur
+
+	exit(0);
 }
 
 void menu()

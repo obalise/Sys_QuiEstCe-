@@ -8,37 +8,38 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <check.h>
 
+START_TEST (test_name)
+{
+  		/* unit test code */
+}
+END_TEST
 
 const char* filename = "eleve.txt";
 
 /*Prototype*/
 void launch_regex();
-
 void return_tableau(char tableau[30][80]);
-int serveur(char tableau[30][80], char personnageselect[80]);
-
+int serveur(char tableau[30][80], char personnageselect[80], int sec);
 void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80]);
+void fin(int sig);
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[], char *arge[])
 {
+	char tableau[30][80];
+    	char personnageselect[80];
+	int sec = 0;
 
-    char tableau[30][80];
-    char personnageselect[80];
-    return_tableau(tableau);
-    
-    selection_aleatoire_perso(tableau, personnageselect);
-    
-    int status = 1;
+	sec = atoi(argv[1]);	
 
-	while(status)
-	{
-		status = serveur(tableau, personnageselect);
-	
-    		launch_regex();
-	}
+    	return_tableau(tableau);
+ 
+    	selection_aleatoire_perso(tableau, personnageselect);
 
-    	return 0;
+	serveur(tableau, personnageselect, sec);
+
+ 	return 0;
 }
 
 void launch_regex(){
@@ -114,28 +115,47 @@ void return_tableau(char tableau[30][80]){
     printf("Sortie du fichier\n");
 }
 
-int serveur(char tableau[30][80], char personnageselect[80])
+int serveur(char tableau[30][80], char personnageselect[80], int sec)
 {
-	int pid,descR,descW,nb,test;
-	int etudiant=0;
-    char buf[80], prenom[50];
+	int pid,pid2,pid3,descR,descW,nb,test;
+	int status=1;
+    	char buf[80], prenom[50];
 	char main[30]= "./pipe/main";
 	char chemin[9]= "./pipe/";
-	
+	char * myArgv[3];	
 
+	alarm(sec);
+    	signal(SIGALRM, fin);	 
+	
     	unlink(main);
     	mkfifo(main,0666); // creation du pipe fifo
+
+	
+	pid=fork();	
+	if(pid == 0)
+	{
+		myArgv[0]="home/isen/Sys_QuiEstCe-/stats";
+        	myArgv[1]="/home/isen/Sys_QuiEstCe-/pipe/main";
+		myArgv[2]=NULL;
+        	execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
+	}
+
+    	wait(NULL); // on attende la fin du processus fils
+
    	do
 	{ 
     		descR=open(main,O_RDONLY); //ouverture du pipe
     		nb=read(descR,buf,80); // Ecoute sur le pipe main par bloc de 80 max
-    		
-		etudiant++;
-
+		
     		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
     		buf[nb]='\0';
     		printf("Client: %s\n",buf);
-    	
+    		
+		if (nb == 12)
+		{
+			status = 0; //on sort du do-while retour vainqueur 
+		}
+		
 		strcpy(prenom, buf);
 
 		test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
@@ -144,12 +164,10 @@ int serveur(char tableau[30][80], char personnageselect[80])
 		{
 	
 			/****************Gestion processus***********************/
-			/* on cree un processus des qu'il y a un nouveau client */
-    			pid=fork();
-	
-    			if(pid == 0)
+			/* on cree un processus des qu'il y a le premier client */
+    			pid2=fork();
+    			if(pid2 == 0)
 			{
-        			//execv("ici la modularite", NULL);
 				printf("on est dans le fils de %s\n",prenom);
 				
 				strcat(chemin,prenom);
@@ -158,7 +176,6 @@ int serveur(char tableau[30][80], char personnageselect[80])
     				mkfifo(chemin,0755); // creation du pipe client
 		
     				descW=open(chemin,O_WRONLY); //ouverture du pipe
-    				write(descW,prenom,20); // Ecriture sur le pipe client
     				
     				write(descW, tableau, sizeof(char)*30*80);
     				
@@ -166,11 +183,34 @@ int serveur(char tableau[30][80], char personnageselect[80])
     				
 				exit(0);
 			}
-    			wait(NULL); // on attende la fin du processus fils
+
 		}
 		/**************Fin gestion processus*********************/
-	}while(etudiant!=4);
+	}while(status);
+
+
+    	wait(NULL); // on attende la fin du processus fils
+
+	close(descW); // Fermeture du descritpeur d'ecriture
     	close(descR); // fermeture du descripteur lecture
-    
+   
+	pid3=fork();	
+	if(pid3 == 0)
+	{
+		myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
+        	myArgv[1]="le gagnant";
+		myArgv[2]=NULL;
+        	execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+	}
+
+    	wait(NULL); // on attende la fin du processus fils
+
+ 
     	exit(0);
+}
+
+void fin(int sig)
+{
+	printf("Fin du jeu\n");
+	exit(0);
 }

@@ -18,7 +18,6 @@ void affichagePersonnages(char tableau[20][80]);
 int main(void){
     int descW,descR,nb;
     char prenom[50];
-    //char prenomcpy[50];
     char buf[80];
     char tableau[20][80];
     char personnageselect[80];
@@ -29,8 +28,6 @@ int main(void){
     printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
     printf("Quel est votre Prenom?\n");
     scanf("%s", prenom);
-
-    //strcpy(prenomcpy,prenom); //artifice sinon on coupe les deux premier caractères du tableau ???
 
     /* penser à ajouter main entre ""*/
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
@@ -57,10 +54,11 @@ int main(void){
     //read(descR, personnageselect, sizeof(char)*80);
     read(descR, personnageselect, sizeof(char)*80);
 
-    printf("Personnage selectionné -> ");
-    puts(personnageselect);
+    //printf("Personnage selectionné -> ");
+    //puts(personnageselect);
 
     menu(personnageselect, tableau);
+    
     close(descR);
     
     printf("\nJ'vai m'balader !\n");
@@ -68,8 +66,8 @@ int main(void){
 }
 
 void menu(char personnageselect[80], char tableau[20][80]){
-    printf("Personnage selectionné -> ");
-    printf("%s",personnageselect);
+    //printf("Personnage selectionné -> ");
+   // printf("%s",personnageselect);
 
     int i = 0 ;
     char chaine_recherche[80];
@@ -210,10 +208,10 @@ void menu(char personnageselect[80], char tableau[20][80]){
                     status = launch_regex(personnageselect,chaine_recherche);
                     if ((status == 0) || (status == 1)) {
                         if (status == 0) {
-                            printf("Votre personnage a la caractériqtique %s\n", p_chaine_recherche);
+                            printf("Votre personnage a la caractériqtique\n");
                         }
                         if (status == 1) {
-                            printf("Votre personnage n'a pas la caractériqtique %s\n", p_chaine_recherche);
+                            printf("Votre personnage n'a pas la caractériqtique\n");
                         }
                     }
                     else{
@@ -231,8 +229,7 @@ void menu(char personnageselect[80], char tableau[20][80]){
                         printf("Personnage trouve%s\n", p_chaine_recherche);
                     }
                     if (status == 1){
-                        printf("Personnage faux, Vous pourez rependre votre parti dans 3s%s\n", p_chaine_recherche);
-                        sleep(3);
+                        printf("Personnage faux, Point de pénalité !!!!!\n");
                     }
                 }
                 else{
@@ -250,7 +247,6 @@ void menu(char personnageselect[80], char tableau[20][80]){
             printf("Arret partie");
             // fonction retour pipe
         }
-
     }while (i != 0);
 }
 

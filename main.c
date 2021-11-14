@@ -37,9 +37,18 @@ int main(int argc, char *argv[], char *arge[])
     return_tableau(tableau);
 	sec = atoi(argv[1]);	
 
-    	return_tableau(tableau);
-    	selection_aleatoire_perso(tableau, personnageselect);
-    	/*
+    return_tableau(tableau);
+    
+    printf("Liste des Personnages et de leurs caractéristiques: \n");
+	 for(int i = 0; i < NBR_PERSONNAGES ; i++)
+    {
+        printf("%d -> ", i );
+        puts(tableau[i]);
+    }
+    
+    selection_aleatoire_perso(tableau, personnageselect);
+    	
+    /*
 	while(status)
 	{
 		status = serveur(tableau, personnageselect);
@@ -98,27 +107,26 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 {
 	int pid,pid2,pid3,descR,descW,nb,test;
 	int status=1;
-    	char buf[NBR_CARACTERES ], prenom[50];
+    char buf[NBR_CARACTERES ], prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
 	char chemin[9]= "./pipe/";
 	char * myArgv[3];	
 
 	alarm(sec);
-    	signal(SIGALRM, fin);	 
+    signal(SIGALRM, fin);	 
 	
-    	unlink(main);
-    	mkfifo(main,0666); // creation du pipe fifo
+    unlink(main);
+    mkfifo(main,0666); // creation du pipe fifo
 
 	
 	pid=fork();	
 	if(pid == 0)
 	{
 		myArgv[0]="home/isen/Sys_QuiEstCe-/stats";
-        	myArgv[1]="/home/isen/Sys_QuiEstCe-/pipe/main";
+        myArgv[1]="/home/isen/Sys_QuiEstCe-/pipe/main";
 		myArgv[2]=NULL;
-        	execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
+        execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
 	}
-
     	wait(NULL); // on attende la fin du processus fils
 
    	do
@@ -177,7 +185,7 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 	if(pid3 == 0)
 	{
 		myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
-        	myArgv[1]="le gagnant";
+        myArgv[1]="le gagnant";
 		myArgv[2]=NULL;
         	execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
 	}

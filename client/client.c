@@ -16,6 +16,7 @@ void affichagePersonnages(char tableau[20][80]);
 
 
 int main(void){
+	
     int descW,descR,nb;
     char prenom[50];
     char buf[80];
@@ -38,7 +39,7 @@ int main(void){
 	//close(descW); // on ferme le descripteur
 	sleep(1);
 
-    	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
+    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
 	nb=read(descR,buf,20);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
@@ -46,11 +47,11 @@ int main(void){
 	
 	
 	//Voyons voir avec ce for si le tableau s'est rempli correctement
-    	{
-	for(int i = 0; i < 30; i++)
-        	printf("%d -> ", i );
-    	}
+	for(int i = 0; i < 30; i++){
+	        printf("%d -> ", i );
         	puts(tableau[i]); 
+    	}
+        	
 	read(descR, personnageselect, sizeof(char)*80);
     menu(personnageselect, tableau);
 	sleep(1);
@@ -62,8 +63,6 @@ int main(void){
 }
 
 void menu(char personnageselect[80], char tableau[20][80]){
-    //printf("Personnage selectionné -> ");
-   // printf("%s",personnageselect);
 
     int i = 0 ;
     char chaine_recherche[80];

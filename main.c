@@ -8,30 +8,27 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <check.h>
-
+//#include <check.h>
+/*
 START_TEST (test_name)
 {
-  		/* unit test code */
+  		//unit test code 
 }
-END_TEST
+END_TEST*/
 
 const char* filename = "eleve.txt";
 
 /*Prototype*/
 void return_tableau(char tableau[20][80]);
 void launch_regex();
-int serveur(char tableau[30][80], char personnageselect[80], int sec);
-int serveur(char tableau[20][80], char personnageselect[80]);
+int serveur(char tableau[20][80], char personnageselect[80], int sec);
+
 void selection_aleatoire_perso(char tableau[20][80], char personnageselect[80]);
 void fin(int sig);
-void return_tableau(char tableau[30][80]);
-void selection_aleatoire_perso(char tableau[30][80], char personnageselect[80]);
 
 int main(int argc, char *argv[], char *arge[])
 {
-	char tableau[30][80];
-    	char personnageselect[80];
+
 	int sec = 0;
 
     char tableau[20][80];
@@ -41,11 +38,12 @@ int main(int argc, char *argv[], char *arge[])
 
     	return_tableau(tableau);
     	selection_aleatoire_perso(tableau, personnageselect);
+    	/*
 	while(status)
 	{
 		status = serveur(tableau, personnageselect);
 
-	}
+	}*/
 
 	serveur(tableau, personnageselect, sec);
 
@@ -172,7 +170,7 @@ int serveur(char tableau[30][80], char personnageselect[80], int sec)
     	wait(NULL); // on attende la fin du processus fils
 
 	close(descW); // Fermeture du descritpeur d'ecriture
-    	close(descR); // fermeture du descripteur lecture
+    close(descR); // fermeture du descripteur lecture
    
 	pid3=fork();	
 	if(pid3 == 0)

@@ -25,6 +25,7 @@ const char* filename = "eleve.txt";
 /*Prototype*/
 void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]);
 void launch_regex();
+int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ]);
 int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES], int sec);
 void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES]);
 void fin(int sig);
@@ -35,17 +36,17 @@ int main(int argc, char *argv[], char *arge[])
     char tableau[NBR_PERSONNAGES][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
     
-	int status=1;
+    int descR,nb,test;
+	int status=1, sec=0;
     char buf[NBR_CARACTERES ], prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
-	char chemin[9]= "./pipe/";
-	char * myArgv[3];	
+	//char chemin[9]= "./pipe/";
+	//char * myArgv[3];	
+	
+	sec = atoi(argv[1]);	
 
 	alarm(sec);
     signal(SIGALRM, fin);	 
-    
-    
-	sec = atoi(argv[1]);	
     
     //Création du pipe FIFO
     unlink(main);
@@ -78,7 +79,6 @@ int main(int argc, char *argv[], char *arge[])
 		else{
 			printf("Tentative de connexion d'une personne non autorisée !\n");
 		}
-		
 	}
 
 	//serveur(tableau, personnageselect, sec);
@@ -131,9 +131,10 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
 int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ])
 {
-	int pid,pid2,pid3,descR,descW,nb,test;
-	int status=1;
-    char buf[NBR_CARACTERES ], prenom[50];
+	int pid2,descW;
+	//int status=1;
+    //char buf[NBR_CARACTERES ];
+    char chemin[9]= "./pipe/";
 	
 	//FORK ET CREATION DU PIPE CLIENT
 	pid2=fork();
@@ -151,6 +152,8 @@ int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARA
 	
 	exit(0);
 	}
+	
+	return 74;
 }
 
 int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], int sec)

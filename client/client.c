@@ -10,7 +10,13 @@
 #include <regex.h>
 
 #define NBR_CARACTERES 80
-#define NBR_PERSONNAGES 20
+#define NBR_PERSONNAGES 19
+
+typedef struct messageClientServeur {
+	int type_message;         //0 Initialisation et 1 pour le message final une fois le jeu fini
+	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 1 (message final de fin de partie)
+    char identite_envoyeur [50];
+} MessageClientServeur;
 
 
 int menu (char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
@@ -22,6 +28,7 @@ void arretCTRLC(){exit(0);};
 
 int main(void){
 	
+	signal(SIGINT, arretCTRLC); // ingnore ctrl+c
     int descW, descR, nb;
     char prenom[50];
     char buf[NBR_CARACTERES];
@@ -35,26 +42,19 @@ int main(void){
 	printf("Quel est votre Prenom?\n");
 	scanf("%s", prenom);
 	
-	signal(SIGINT, arretCTRLC); // ingnore ctrl+c
+	MessageClientServeur *messageInitialisation = malloc(sizeof(MessageClientServeur));
+	messageInitialisation->type_message = 0;
+	messageInitialisation->resultat = 0;
+	strcpy(messageInitialisation->identite_envoyeur, prenom);
 	
 	/* penser à ajouter main entre ""*/
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
-    write(descW,prenom,50); // on ecrit le nom du nouveau client
+    write(descW, messageInitialisation, sizeof(MessageClientServeur));
     close(descW); // on ferme le descripteur
-    printf("[CLIENT] OK 1\n");
     sleep(1);
-
-/*
-    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
-	nb=read(descR,buf,NBR_CARACTERES);
-	buf[nb]='\0';
-	printf("Retour serveur: %s\n",buf);
-	*/
 	
 	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
-	 printf("[CLIENT] OK 2\n");
 	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
-	 printf("[CLIENT] OK 3\n");	
 	//Voyons voir avec ce for si le tableau s'est rempli correctement
 	for(int i = 0; i <NBR_PERSONNAGES ; i++){
 	        printf("%d -> ", i );
@@ -66,16 +66,15 @@ int main(void){
 	close(descR);
 	
     int resultat = menu(personnageselect, tableau);
-	//sleep(1);
+
+	MessageClientServeur *messageFinal = malloc(sizeof(MessageClientServeur));
+	messageFinal->type_message = 1;
+	messageFinal->resultat = resultat;
+	strcpy(messageFinal->identite_envoyeur, prenom);
+	
 	
 	descW=open("main",O_WRONLY); 
-	if (resultat == 1)
-		write(descW,"_vainqueur_",12); 
-	else if (resultat == 0)
-		write(descW,"_perdant_", 10);
-	else
-		printf("Problème dans le menu\n");
-		
+	write(descW, messageFinal,sizeof(MessageClientServeur)); 
 	close(descW); // on ferme le descripteur
     printf("\nJ'vai m'balader !\n");
     exit (8);

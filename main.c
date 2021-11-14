@@ -11,7 +11,13 @@
 //#include <check.h>
 
 #define NBR_CARACTERES 80
-#define NBR_PERSONNAGES 20
+#define NBR_PERSONNAGES 19
+
+typedef struct messageClientServeur {
+	int type_message;         //0 Initialisation et 1 pour le message final une fois le jeu fini
+	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 1 (message final de fin de partie)
+    char identite_envoyeur [50];
+} MessageClientServeur;
 
 /*
 START_TEST (test_name)
@@ -53,41 +59,25 @@ int main(int argc, char *argv[], char *arge[])
     mkfifo(main,0666); 
     
     return_tableau(tableau);
-    /*
-    printf("Liste des Personnages et de leurs caractéristiques: \n");
-	 for(int i = 0; i < NBR_PERSONNAGES ; i++)
-    {
-        printf("%d -> ", i );
-        puts(tableau[i]);
-    }*/
-    selection_aleatoire_perso(tableau, personnageselect); //Pour l'instant on a un seul personnage pour tous les clients
+    selection_aleatoire_perso(tableau, personnageselect); //Pour l'instant on a un seul personnage pour tous les clients, sinon on prend cette ligne et on la met plus bas dans le if(test==0)
     
 	while(status)
 	{
 		printf("Je suis en train d'attendre un client...\n");
 		descR=open(main,O_RDONLY); //ouverture du pipe
-		nb=read(descR,buf,50); // Ecoute sur le pipe main par bloc de 80 max
-		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
-		buf[nb]='\0';
-		printf("Client: %s\n",buf);
-		strcpy(prenom, buf);
+		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
+		read(descR, messageRecu, sizeof(MessageClientServeur)); 
+		close(descR);
+
+		printf("Client: %s\n", messageRecu->identite_envoyeur);
+		strcpy(prenom, messageRecu->identite_envoyeur);
 		test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
-		
+
 		if(test==0){
 			gestionNouveauClient(prenom, tableau, personnageselect);
-			
-			nb = read(descR, buf, 50);
-			buf[nb]='\0';
-			if (nb == 12)
-				printf("On a un gagnant: %s !\n",buf);
-			else
-				printf("On a un perdant: %s !\n",buf);
-		}
-		else{
+		}else{
 			printf("Tentative de connexion d'une personne non autorisée !\n");
-		}
-		
-		
+		}	
 	}
 
 	//serveur(tableau, personnageselect, sec);
@@ -99,7 +89,7 @@ void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], ch
 {
 	srand(getpid());
 	int numerolignealeatoire = (rand() % NBR_PERSONNAGES);
-	printf("Le nombre aléatoire entre 1 et 19 est %d!\n", numerolignealeatoire);
+	printf("Le nombre aléatoire entre 0 et 18 est %d!\n", numerolignealeatoire);
 	strcpy(personnageselect, tableau[numerolignealeatoire]);
 	printf("Ligne choisie est : %s", personnageselect);
 	
@@ -140,10 +130,11 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
 int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ])
 {
-	int pid2,descW;
-	//int status=1;
-    //char buf[NBR_CARACTERES ];
+	int pid2,descW,descR;
+	int nb=0;
+    char buf[NBR_CARACTERES ];
     char chemin[9]= "./pipe/";
+    char main[NBR_PERSONNAGES]= "./pipe/main";
 	
 	//FORK ET CREATION DU PIPE CLIENT
 	pid2=fork();
@@ -154,18 +145,16 @@ int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARA
 	mkfifo(chemin,0755); 
 
 	descW=open(chemin,O_WRONLY); //ouverture du pipe
-	printf("[SERVEUR] OK 1\n");
+	//printf("[SERVEUR] OK 1\n");
 	write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
-	printf("[SERVEUR] OK 2\n");
 	write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
-	printf("[SERVEUR] OK 3\n");
 	close(descW);
-	printf("[SERVEUR] OK 4\n");
+	
 	exit(0);
 	}
-	
 	return 74;
 }
+
 
 int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], int sec)
 {

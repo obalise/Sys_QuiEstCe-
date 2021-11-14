@@ -31,31 +31,57 @@ void fin(int sig);
 
 int main(int argc, char *argv[], char *arge[])
 {
-	int sec = 0;
+	//INITIALISATION ?
     char tableau[NBR_PERSONNAGES][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
-    return_tableau(tableau);
-	sec = atoi(argv[1]);	
-
-    return_tableau(tableau);
     
+	int status=1;
+    char buf[NBR_CARACTERES ], prenom[50];
+	char main[NBR_PERSONNAGES]= "./pipe/main";
+	char chemin[9]= "./pipe/";
+	char * myArgv[3];	
+
+	alarm(sec);
+    signal(SIGALRM, fin);	 
+    
+    
+	sec = atoi(argv[1]);	
+    
+    //Création du pipe FIFO
+    unlink(main);
+    mkfifo(main,0666); 
+    
+    return_tableau(tableau);
+    /*
     printf("Liste des Personnages et de leurs caractéristiques: \n");
 	 for(int i = 0; i < NBR_PERSONNAGES ; i++)
     {
         printf("%d -> ", i );
         puts(tableau[i]);
-    }
+    }*/
+    selection_aleatoire_perso(tableau, personnageselect); //Pour l'instant on a un seul personnage pour tous les clients
     
-    selection_aleatoire_perso(tableau, personnageselect);
-    	
-    /*
 	while(status)
 	{
-		status = serveur(tableau, personnageselect);
+		printf("Je suis en train d'attendre un client...\n");
+		descR=open(main,O_RDONLY); //ouverture du pipe
+		nb=read(descR,buf,50 ); // Ecoute sur le pipe main par bloc de 80 max
+		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
+		buf[nb]='\0';
+		printf("Client: %s\n",buf);
+		strcpy(prenom, buf);
+		test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
+		
+		if(test==0){
+			gestionNouveauClient(prenom, tableau, personnageselect);
+		}
+		else{
+			printf("Tentative de connexion d'une personne non autorisée !\n");
+		}
+		
+	}
 
-	}*/
-
-	serveur(tableau, personnageselect, sec);
+	//serveur(tableau, personnageselect, sec);
 
  	return 0;
 }
@@ -103,6 +129,30 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
     printf("Sortie du fichier\n");
 }
 
+int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ])
+{
+	int pid,pid2,pid3,descR,descW,nb,test;
+	int status=1;
+    char buf[NBR_CARACTERES ], prenom[50];
+	
+	//FORK ET CREATION DU PIPE CLIENT
+	pid2=fork();
+    if(pid2 == 0){
+	printf("on est dans le fils de %s\n",prenom);
+	strcat(chemin,prenom);
+	unlink(chemin);
+	mkfifo(chemin,0755); 
+
+	descW=open(chemin,O_WRONLY); //ouverture du pipe
+	
+	write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
+	
+	write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
+	
+	exit(0);
+	}
+}
+
 int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], int sec)
 {
 	int pid,pid2,pid3,descR,descW,nb,test;
@@ -127,7 +177,7 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 		myArgv[2]=NULL;
         execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
 	}
-    	wait(NULL); // on attende la fin du processus fils
+    wait(NULL); // on attende la fin du processus fils
 
    	do
 	{ 
@@ -176,7 +226,7 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 	}while(status);
 
 
-    	wait(NULL); // on attende la fin du processus fils
+    wait(NULL); // on attende la fin du processus fils
 
 	close(descW); // Fermeture du descritpeur d'ecriture
     close(descR); // fermeture du descripteur lecture

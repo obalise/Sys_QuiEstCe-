@@ -13,7 +13,7 @@
 #define NBR_PERSONNAGES 20
 
 
-void menu (char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
+int menu (char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void strcpy_pointeur(char *, char);
 int launch_regex(char *, char *);
 void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
@@ -22,7 +22,7 @@ void arretCTRLC(){exit(0);};
 
 int main(void){
 	
-    int descW,descR,nb;
+    int descW, descR, nb;
     char prenom[50];
     char buf[NBR_CARACTERES];
     char tableau[NBR_PERSONNAGES ][NBR_CARACTERES];
@@ -41,6 +41,7 @@ int main(void){
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
     write(descW,prenom,50); // on ecrit le nom du nouveau client
     close(descW); // on ferme le descripteur
+    printf("[CLIENT] OK 1\n");
     sleep(1);
 
 /*
@@ -49,27 +50,39 @@ int main(void){
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
 	*/
+	
 	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
+	 printf("[CLIENT] OK 2\n");
 	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
-		
+	 printf("[CLIENT] OK 3\n");	
 	//Voyons voir avec ce for si le tableau s'est rempli correctement
 	for(int i = 0; i <NBR_PERSONNAGES ; i++){
 	        printf("%d -> ", i );
         	puts(tableau[i]); 
     	}
-        	
+      printf("[CLIENT] OK 4\n");
 	read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
-    menu(personnageselect, tableau);
-	//sleep(1);
+	 printf("[CLIENT] OK 5\n");
 	close(descR);
-	write(descW,"_vainqueur_",12); // on ecrit de le pipe main si on a trouvé l'eleve mystere
+	
+    int resultat = menu(personnageselect, tableau);
+	//sleep(1);
+	
+	descW=open("main",O_WRONLY); 
+	if (resultat == 1)
+		write(descW,"_vainqueur_",12); 
+	else if (resultat == 0)
+		write(descW,"_perdant_", 10);
+	else
+		printf("Problème dans le menu\n");
+		
 	close(descW); // on ferme le descripteur
     printf("\nJ'vai m'balader !\n");
     exit (8);
 }
 
 
-void menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
+int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
     int i = 0 ;
     char chaine_recherche[NBR_CARACTERES];
@@ -79,7 +92,7 @@ void menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][N
 
     do{
         //menu global
-        printf("\n********** Bienvenu dans le menu du jeux QUI EST CE????? **********\n");
+        printf("\n********** Bienvenue dans le menu du jeu QUI EST-CE ? **********\n");
         printf ("|  0 | Quitter le programme\n");
         printf ("|  1 | Saisie caracteristique\n");
         printf ("|  2 | Proposition de l'eleve\n");
@@ -226,12 +239,15 @@ void menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][N
                 printf("Quel est le nom du personnage mystere\n");
                 scanf("%s", chaine_recherche);
                 status = launch_regex(personnageselect,chaine_recherche);
-                if ((status == 0) || (status == 1)){
+                
+                if ((status == 0) || (status == 1)){     //C'est surement le if le plus chelou que j'ai vu, faut le changer ou le prof se moquera de nous.
                     if (status == 0){
-                        printf("Personnage trouve%s\n", p_chaine_recherche);
+                        printf("Personnage trouve %s ! C'est gagné !\n", p_chaine_recherche);
+                        return 1;
                     }
                     if (status == 1){
-                        printf("Personnage faux, Point de pénalité !!!!!\n");
+                        printf("Personnage faux,  c'était %s ! C'est perdu !\n", p_chaine_recherche);
+                        return 0;
                     }
                 }
                 else{
@@ -250,6 +266,7 @@ void menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][N
             // fonction retour pipe
         }
     }while (i != 0);
+    return 3; //problème
 }
 
 int launch_regex(char *elu, char *p_chaine_recherche){

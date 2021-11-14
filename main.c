@@ -66,7 +66,7 @@ int main(int argc, char *argv[], char *arge[])
 	{
 		printf("Je suis en train d'attendre un client...\n");
 		descR=open(main,O_RDONLY); //ouverture du pipe
-		nb=read(descR,buf,50 ); // Ecoute sur le pipe main par bloc de 80 max
+		nb=read(descR,buf,50); // Ecoute sur le pipe main par bloc de 80 max
 		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
 		buf[nb]='\0';
 		printf("Client: %s\n",buf);
@@ -75,10 +75,19 @@ int main(int argc, char *argv[], char *arge[])
 		
 		if(test==0){
 			gestionNouveauClient(prenom, tableau, personnageselect);
+			
+			nb = read(descR, buf, 50);
+			buf[nb]='\0';
+			if (nb == 12)
+				printf("On a un gagnant: %s !\n",buf);
+			else
+				printf("On a un perdant: %s !\n",buf);
 		}
 		else{
 			printf("Tentative de connexion d'une personne non autorisée !\n");
 		}
+		
+		
 	}
 
 	//serveur(tableau, personnageselect, sec);
@@ -145,11 +154,13 @@ int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARA
 	mkfifo(chemin,0755); 
 
 	descW=open(chemin,O_WRONLY); //ouverture du pipe
-	
+	printf("[SERVEUR] OK 1\n");
 	write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
-	
+	printf("[SERVEUR] OK 2\n");
 	write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
-	
+	printf("[SERVEUR] OK 3\n");
+	close(descW);
+	printf("[SERVEUR] OK 4\n");
 	exit(0);
 	}
 	

@@ -1,11 +1,29 @@
-// Server side C/C++ program to demonstrate Socket programming
-#include <unistd.h>
-#include <stdio.h>
 #include <sys/socket.h>
-#include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <regex.h>
 #define PORT 8080
+
+typedef struct messageServeurServeurSock {
+	int type_message;         //2 Initialisation et 3 pour le message final une fois le jeu fini
+	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 3(message final de fin de partie)
+    char identite_envoyeur [50];
+} MessageServeurServeurSock;
+
+typedef struct messageClientServeurSock {
+	int type_message;         //2 Initialisation et 1 pour le message final une fois le jeu fini
+	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 3 (message final de fin de partie)
+    char identite_envoyeur [50];
+} MessageClientServeurSock;
 
 int main(int argc, char const *argv[])
 {
@@ -14,7 +32,7 @@ int main(int argc, char const *argv[])
 	int opt = 1;
 	int addrlen = sizeof(address);
 	char buffer[1024] = {0};
-	char *hello = "Hello from socket server";
+	char *hello = "Hello from socket server";	
 	
 	// Creating socket file descriptor
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -52,10 +70,22 @@ int main(int argc, char const *argv[])
 		perror("accept");
 		exit(EXIT_FAILURE);
 	}
-	valread = read( new_socket , buffer, 1024);
-	printf("%s\n",buffer );
+	
+	MessageClientServeurSock *messageInitialisation = malloc(sizeof(MessageClientServeurSock));
+	valread = read( new_socket , messageInitialisation, 1024);
+	
+	printf("%d  %d  %s\n",messageInitialisation->type_message, messageInitialisation->resultat, messageInitialisation->identite_envoyeur );
 	send(new_socket , hello , strlen(hello) , 0 );
 	printf("Hello message sent\n");
+	
+	
+	int descW;
+	
+	chdir("./pipe"); 
+	descW = open("main",O_WRONLY); // on ouvre le pipe main en ecriture
+    write(descW, messageInitialisation, sizeof(MessageServeurServeurSock));
+    close(descW); // on ferme le descripteur
+	 
 	return 0;
 }
 

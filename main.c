@@ -42,12 +42,14 @@ int main(int argc, char *argv[], char *arge[])
     char tableau[NBR_PERSONNAGES][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
     
-    int descR,nb,test;
+    //int fd_serveur_socket[2][2];
+    
+    int descR, nb, test, pid;
 	int status=1, sec=0;
     char buf[NBR_CARACTERES ], prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
 	//char chemin[9]= "./pipe/";
-	//char * myArgv[3];	
+	char * myArgv[3];	
 	
 	sec = atoi(argv[1]);	
 
@@ -60,6 +62,19 @@ int main(int argc, char *argv[], char *arge[])
     
     return_tableau(tableau);
     selection_aleatoire_perso(tableau, personnageselect); //Pour l'instant on a un seul personnage pour tous les clients, sinon on prend cette ligne et on la met plus bas dans le if(test==0)
+    
+    
+    pid=fork();	
+	if(pid == 0)
+	{
+		unlink("pipeServeurSocket");
+		mkfifo("pipeServeurSocket", 0666);              //Uniquement pour parler vers le serveur à socket
+		
+		myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
+        myArgv[1]="le gagnant";
+		myArgv[2]=NULL;
+        execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+	}
     
 	while(status)
 	{
@@ -74,19 +89,22 @@ int main(int argc, char *argv[], char *arge[])
 			strcpy(prenom, messageRecu->identite_envoyeur);
 			test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
 
-			if(test==0){
+			if(test == 0){
 				gestionNouveauClient(prenom, tableau, personnageselect);
 			}else{
 				printf("Tentative de connexion d'une personne non autorisée !\n");
 			}	
-		}else{
+			
+		}else if(messageRecu->type_message == 1){
 			if(messageRecu->resultat == 1)
 				printf("\n%s a trouvé l'élève caché, Bravo !\n", messageRecu->identite_envoyeur);
 			if(messageRecu->resultat == 0)
 				printf("\n%s n'a pas trouvé l'élève caché, gros pouce vers le bas pour toi !\n", messageRecu->identite_envoyeur);
-			
-			
+				
+		}else if (messageRecu->type_message == 2){
+			printf("\nJ'ai reçu un message du serveur de socket ! L'initialisation d'un client Socket est en cours !\n");
 		}
+		
 	}
 
 	//serveur(tableau, personnageselect, sec);
@@ -256,7 +274,8 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 
  
     	exit(0);
-}
+} 
+
 
 void fin(int sig)
 {

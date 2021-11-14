@@ -43,11 +43,13 @@ int main(void){
     close(descW); // on ferme le descripteur
     sleep(1);
 
+/*
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
 	nb=read(descR,buf,NBR_CARACTERES);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
-	
+	*/
+	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
 	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
 		
 	//Voyons voir avec ce for si le tableau s'est rempli correctement

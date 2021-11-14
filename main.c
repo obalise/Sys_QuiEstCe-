@@ -187,7 +187,7 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 		myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
         myArgv[1]="le gagnant";
 		myArgv[2]=NULL;
-        	execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+        execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
 	}
 
     	wait(NULL); // on attende la fin du processus fils

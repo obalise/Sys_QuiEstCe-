@@ -9,19 +9,23 @@
 #include <sys/stat.h>
 #include <regex.h>
 
-void menu (char personnageselect[80], char tableau[20][80]);
+#define NBR_CARACTERES 80
+#define NBR_PERSONNAGES 20
+
+
+void menu (char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void strcpy_pointeur(char *, char);
 int launch_regex(char *, char *);
-void affichagePersonnages(char tableau[20][80]);
+void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 
 
 int main(void){
 	
     int descW,descR,nb;
     char prenom[50];
-    char buf[80];
-    char tableau[20][80];
-    char personnageselect[80];
+    char buf[NBR_CARACTERES];
+    char tableau[NBR_PERSONNAGES ][NBR_CARACTERES];
+    char personnageselect[NBR_CARACTERES];
 
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
@@ -34,25 +38,25 @@ int main(void){
 	
 	/* penser à ajouter main entre ""*/
     	descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
-    	write(descW,prenom,20); // on ecrit le nom du nouveau client
+    	write(descW,prenom,NBR_PERSONNAGES); // on ecrit le nom du nouveau client
     
 	//close(descW); // on ferme le descripteur
 	sleep(1);
 
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
-	nb=read(descR,buf,20);
+	nb=read(descR,buf,NBR_PERSONNAGES);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
-	read(descR, tableau, sizeof(char)*30*80);
+	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES *NBR_CARACTERES);
 	
 	
 	//Voyons voir avec ce for si le tableau s'est rempli correctement
-	for(int i = 0; i < 30; i++){
+	for(int i = 0; i <NBR_PERSONNAGES ; i++){
 	        printf("%d -> ", i );
         	puts(tableau[i]); 
     	}
         	
-	read(descR, personnageselect, sizeof(char)*80);
+	read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
     menu(personnageselect, tableau);
 	sleep(1);
 	close(descR);
@@ -62,10 +66,10 @@ int main(void){
     exit (8);
 }
 
-void menu(char personnageselect[80], char tableau[20][80]){
+void menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
     int i = 0 ;
-    char chaine_recherche[80];
+    char chaine_recherche[NBR_CARACTERES];
     char *p_chaine_recherche;
     int status = 0;
     bool recherche_personnage = false;
@@ -281,10 +285,10 @@ int launch_regex(char *elu, char *p_chaine_recherche){
 }
 
 
-void affichagePersonnages(char tableau[20][80]){
+void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]){
 	
 	printf("Liste des Personnages et de leurs caractéristiques: \n");
-	 for(int i = 0; i < 19; i++)
+	 for(int i = 0; i < NBR_PERSONNAGES ; i++)
     {
         printf("%d -> ", i );
         puts(tableau[i]);

@@ -132,7 +132,7 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
    	do
 	{ 
     		descR=open(main,O_RDONLY); //ouverture du pipe
-    		nb=read(descR,buf,NBR_CARACTERES ); // Ecoute sur le pipe main par bloc de 80 max
+    		nb=read(descR,buf,50 ); // Ecoute sur le pipe main par bloc de 80 max
 		
     		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
     		buf[nb]='\0';
@@ -149,7 +149,6 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 
 		if(test==0)
 		{
-	
 			/****************Gestion processus***********************/
 			/* on cree un processus des qu'il y a le premier client */
     			pid2=fork();

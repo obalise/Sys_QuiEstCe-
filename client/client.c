@@ -39,18 +39,18 @@ int main(void){
 	
 	/* penser à ajouter main entre ""*/
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
-    write(descW,prenom,NBR_PERSONNAGES); // on ecrit le nom du nouveau client
+    write(descW,prenom,50); // on ecrit le nom du nouveau client
     
 	//close(descW); // on ferme le descripteur
 	//sleep(1);
 
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
-    //read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
+    read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
     
 	nb=read(descR,buf,NBR_CARACTERES);
 	buf[nb]='\0';
 	printf("Retour serveur: %s\n",buf);
-	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
+	//read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
 		
 	//Voyons voir avec ce for si le tableau s'est rempli correctement
 	for(int i = 0; i <NBR_PERSONNAGES ; i++){

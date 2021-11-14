@@ -63,21 +63,30 @@ int main(int argc, char *argv[], char *arge[])
     
 	while(status)
 	{
-		printf("Je suis en train d'attendre un client...\n");
+		printf("Je suis en train d'attendre un message d'un client quelconque...\n");
 		descR=open(main,O_RDONLY); //ouverture du pipe
 		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
 		read(descR, messageRecu, sizeof(MessageClientServeur)); 
 		close(descR);
+		
+		if(messageRecu->type_message == 0){                                              //Il s'agit du cas ou le message recu est de type initialisation
+			printf("Client: %s\n", messageRecu->identite_envoyeur);
+			strcpy(prenom, messageRecu->identite_envoyeur);
+			test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
 
-		printf("Client: %s\n", messageRecu->identite_envoyeur);
-		strcpy(prenom, messageRecu->identite_envoyeur);
-		test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
-
-		if(test==0){
-			gestionNouveauClient(prenom, tableau, personnageselect);
+			if(test==0){
+				gestionNouveauClient(prenom, tableau, personnageselect);
+			}else{
+				printf("Tentative de connexion d'une personne non autorisée !\n");
+			}	
 		}else{
-			printf("Tentative de connexion d'une personne non autorisée !\n");
-		}	
+			if(messageRecu->resultat == 1)
+				printf("\n%s a trouvé l'élève caché, Bravo !\n", messageRecu->identite_envoyeur);
+			if(messageRecu->resultat == 0)
+				printf("\n%s n'a pas trouvé l'élève caché, gros pouce vers le bas pour toi !\n", messageRecu->identite_envoyeur);
+			
+			
+		}
 	}
 
 	//serveur(tableau, personnageselect, sec);

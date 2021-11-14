@@ -163,13 +163,14 @@ int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselec
 		
     				descW=open(chemin,O_WRONLY); //ouverture du pipe
     				
+    				//write(descW,prenom,20); // Ecriture sur le pipe client
+    				
     				write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
     				
     				write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
     				
 				exit(0);
 			}
-
 		}
 		/**************Fin gestion processus*********************/
 	}while(status);

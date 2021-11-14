@@ -24,43 +24,39 @@ int main(void){
 
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
-    /* On demande le nom du client, qui est tu ?*/
-    printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
-    printf("Quel est votre Prenom?\n");
-    scanf("%s", prenom);
+	/* On demande le nom du client, qui est tu ?*/
+	printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
+	printf("Quel est votre Prenom?\n");
+	scanf("%s", prenom);
+	
+	signal(SIGINT, SIG_IGN); // ingnore ctrl+c
+	
+	/* penser à ajouter main entre ""*/
+    	descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
+    	write(descW,prenom,20); // on ecrit le nom du nouveau client
+    
+	//close(descW); // on ferme le descripteur
+	sleep(1);
 
-    /* penser à ajouter main entre ""*/
-    descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
-    write(descW,prenom,20); // on ecrit le nom du nouveau client
-
-    close(descW); // on ferme le descripteur
-    sleep(1);
-
-    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
-    nb=read(descR,buf,20);
-    buf[nb]='\0';
-    printf("Retour serveur: %s\n",buf);
-
-
-    read(descR, tableau, sizeof(char)*20*80);
-
-    //Voyons voir avec ce for si le tableau s'est rempli correctement
-    for(int i = 0; i < 20; i++)
-    {
-        printf("%d -> ", i );
-        puts(tableau[i]);
-    }
-
-    //read(descR, personnageselect, sizeof(char)*80);
-    read(descR, personnageselect, sizeof(char)*80);
-
-    //printf("Personnage selectionné -> ");
-    //puts(personnageselect);
-
+    	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
+	nb=read(descR,buf,20);
+	buf[nb]='\0';
+	printf("Retour serveur: %s\n",buf);
+	read(descR, tableau, sizeof(char)*30*80);
+	
+	
+	//Voyons voir avec ce for si le tableau s'est rempli correctement
+    	{
+	for(int i = 0; i < 30; i++)
+        	printf("%d -> ", i );
+    	}
+        	puts(tableau[i]); 
+	read(descR, personnageselect, sizeof(char)*80);
     menu(personnageselect, tableau);
-    
-    close(descR);
-    
+	sleep(1);
+	close(descR);
+	write(descW,"_vainqueur_",12); // on ecrit de le pipe main si on a trouvé l'eleve mystere
+	close(descW); // on ferme le descripteur
     printf("\nJ'vai m'balader !\n");
     exit (8);
 }

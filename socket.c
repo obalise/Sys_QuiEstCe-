@@ -59,7 +59,7 @@ int main(int argc, char const *argv[])
 		exit(EXIT_FAILURE);
 	}
 	
-	send(new_socket , argv[1] , strlen(argv[1]) , 0 );
+	send(new_socket , argv[1], strlen(argv[1]) , 0 );
 	printf("Hello message sent\n");
 	
 	

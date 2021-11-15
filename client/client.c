@@ -24,11 +24,13 @@ void strcpy_pointeur(char *, char);
 int launch_regex(char *, char *);
 void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void arretCTRLC(){exit(0);};
+void personnageTrouve();
 
 
 int main(void){
 	
 	signal(SIGINT, arretCTRLC); // ingnore ctrl+c
+	signal(SIGUSR1, personnageTrouve);
     int descW, descR, nb;
     char prenom[50];
     char buf[NBR_CARACTERES];
@@ -312,5 +314,11 @@ void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]){
         printf("%d -> ", i );
         puts(tableau[i]);
     }
+	
+}
+
+void personnageTrouve(){
+	
+	
 	
 }

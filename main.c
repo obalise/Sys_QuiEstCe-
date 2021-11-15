@@ -32,8 +32,7 @@ const char* filename = "eleve.txt";
 void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]);
 void launch_regex();
 int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ]);
-int gestionFinPartie();
-int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES], int sec);
+int gestionFinPartie(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int dernierClient, char identite_envoyeur[50]);
 void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES]);
 void fin(int sig);
 
@@ -49,6 +48,8 @@ int main(int argc, char *argv[], char *arge[])
 	int status=1, sec=0;
     char buf[NBR_CARACTERES ], prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
+	char listeClient [NBR_PERSONNAGES][NBR_CARACTERES];
+	int dernierClient = 0;
 	//char chemin[9]= "./pipe/";
 	char * myArgv[3];	
 	
@@ -89,14 +90,18 @@ int main(int argc, char *argv[], char *arge[])
 
 			if(test == 0){
 				gestionNouveauClient(prenom, tableau, personnageselect);
-				//ajouter une liste des prenoms pour plus tard pouvoir les envoyer 
+
+				strcpy(listeClient[dernierClient], prenom);
+				dernierClient++;
+				
+				
 			}else{
 				printf("Tentative de connexion d'une personne non autorisée !\n");
 			}	
 
 		}else if(messageRecu->type_message == 1 && messageRecu->resultat == 1){
 				printf("\n%s a trouvé l'élève caché, Bravo !\n", messageRecu->identite_envoyeur);
-				//gestionFinPartie(...);            Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
+				gestionFinPartie(listeClient, dernierClient, messageRecu->identite_envoyeur);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
 				
 				pid=fork();	
 				if(pid == 0)
@@ -110,10 +115,6 @@ int main(int argc, char *argv[], char *arge[])
 				
 		}else if(messageRecu->type_message == 1 && messageRecu->resultat == 0){
 				printf("\n%s n'a pas trouvé l'élève caché, gros pouce vers le bas pour toi !\n", messageRecu->identite_envoyeur);
-				
-		}else if (messageRecu->type_message == 2){
-			printf("\nJ'ai reçu un message du serveur de socket ! L'initialisation d'un client Socket est en cours !\n");
-			
 		}
 	}
 
@@ -167,11 +168,9 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
 int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ])
 {
-	int pid2,descW,descR;
+	int pid2,descW;
 	int nb=0;
-    char buf[NBR_CARACTERES ];
     char chemin[9]= "./pipe/";
-    char main[NBR_PERSONNAGES]= "./pipe/main";
 	
 	//FORK ET CREATION DU PIPE CLIENT
 	pid2=fork();
@@ -179,7 +178,7 @@ int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARA
 	printf("on est dans le fils de %s\n",prenom);
 	strcat(chemin,prenom);
 	unlink(chemin);
-	mkfifo(chemin,0755); 
+	mkfifo(chemin,0666); 
 
 	descW=open(chemin,O_WRONLY); //ouverture du pipe
 	//printf("[SERVEUR] OK 1\n");
@@ -192,103 +191,26 @@ int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARA
 	return 74;
 }
 
-
-int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], int sec)
-{
-	int pid,pid2,pid3,descR,descW,nb,test;
-	int status=1;
-    char buf[NBR_CARACTERES ], prenom[50];
-	char main[NBR_PERSONNAGES]= "./pipe/main";
-	char chemin[9]= "./pipe/";
-	char * myArgv[3];	
-
-	alarm(sec);
-    signal(SIGALRM, fin);	 
-	
-    unlink(main);
-    mkfifo(main,0666); // creation du pipe fifo
-
-	
-	pid=fork();	
-	if(pid == 0)
-	{
-		myArgv[0]="home/isen/Sys_QuiEstCe-/stats";
-        myArgv[1]="/home/isen/Sys_QuiEstCe-/pipe/main";
-		myArgv[2]=NULL;
-        execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
-	}
-    wait(NULL); // on attende la fin du processus fils
-
-   	do
-	{ 
-    		descR=open(main,O_RDONLY); //ouverture du pipe
-    		nb=read(descR,buf,50 ); // Ecoute sur le pipe main par bloc de 80 max
-		
-    		/*post traitement de ce qu'on recoit dans le pipe à ajouter ici*/
-    		buf[nb]='\0';
-    		printf("Client: %s\n",buf);
-    		
-		if (nb == 12)
-		{
-			status = 0; //on sort du do-while retour vainqueur 
-		}
-		
-		strcpy(prenom, buf);
-
-		test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
-
-		if(test==0)
-		{
-			/****************Gestion processus***********************/
-			/* on cree un processus des qu'il y a le premier client */
-    			pid2=fork();
-    			if(pid2 == 0)
-			{
-				printf("on est dans le fils de %s\n",prenom);
-				
-				strcat(chemin,prenom);
-	
-    				unlink(chemin);
-    				mkfifo(chemin,0755); // creation du pipe client
-		
-    				descW=open(chemin,O_WRONLY); //ouverture du pipe
-    				
-    				//write(descW,prenom,20); // Ecriture sur le pipe client
-    				
-    				write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
-    				
-    				write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
-    				
-				exit(0);
-			}
-		}
-		/**************Fin gestion processus*********************/
-	}while(status);
-
-
-    wait(NULL); // on attende la fin du processus fils
-
-	close(descW); // Fermeture du descritpeur d'ecriture
-    close(descR); // fermeture du descripteur lecture
-   
-	pid3=fork();	
-	if(pid3 == 0)
-	{
-		myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
-        myArgv[1]="le gagnant";
-		myArgv[2]=NULL;
-        execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
-	}
-
-    	wait(NULL); // on attende la fin du processus fils
-
- 
-    	exit(0);
-} 
-
-
 void fin(int sig)
 {
 	printf("Fin du jeu\n");
 	exit(0);
+}
+
+int gestionFinPartie(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int dernierClient, char identite_envoyeur[50])
+{
+	int descW;
+	for(int i =0; i <= dernierClient; i++){
+		puts(listeClient[i]);
+		unlink(listeClient[i]);
+		mkfifo(listeClient[i],0666); 
+		
+		descW=open(listeClient[i],O_WRONLY); 
+		
+		//write(descW,  )
+				
+				
+			
+	}
+	return 0;
 }

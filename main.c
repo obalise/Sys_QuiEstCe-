@@ -8,6 +8,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <termios.h>
+#include <time.h>
 //#include <check.h>
 
 #define NBR_CARACTERES 80
@@ -39,78 +41,61 @@ void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], ch
 void fin(int sig);
 
 
+int attenteTouche ( void ) 
+{
+  int ch;
+  struct termios oldt, newt;
+  tcgetattr ( STDIN_FILENO, &oldt );
+  newt = oldt;
+  newt.c_lflag &= ~( ICANON | ECHO );
+  tcsetattr ( STDIN_FILENO, TCSANOW, &newt );
+  ch = getchar();
+  tcsetattr ( STDIN_FILENO, TCSANOW, &oldt );
+  return ch;
+}
+
+
 void menuServeur(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int listePidClient[NBR_PERSONNAGES], int dernierClient, char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ]){
 	int i = 0;
 	
-	
-	printf("\e[1;1H\e[2J");
-	printf("\n********** Bienvenue dans le menu Serveur du jeu QUI EST-CE ? **********\n");
-	printf("|  0 | Quitter le programme\n");
-	printf("|  1 | Voir l'élève mystère actuel\n");
-	printf("|  2 | Voir les joueurs connectés\n");
-	printf("|  3 | Génération de l'élève mystère (deconnexion forcée des joueurs actuels)\n");
-	printf("|  4 | Lancement de la partie\n");	
-	
-	 scanf("%d", &i);
-	 
-	switch (i) {
-	case 0:
-		exit(0);
-		break;
-	case 1:
-		puts(personnageselect);
-		break;
+	do{
+		printf("\e[1;1H\e[2J");
+		printf("\n********** Bienvenue dans le menu Serveur du jeu QUI EST-CE ? **********\n");
+		printf("|  0 | Quitter le programme\n");
+		printf("|  1 | Voir l'élève mystère actuel\n");
+		printf("|  2 | Génération de l'élève mystère (deconnexion forcée des joueurs actuels)\n");
+		printf("|  3 | Lancement de la partie\n");	
 		
-	case 2:
-		for(int i = 0; i <= dernierClient-1; i++){
-		
-			printf("[Liste des joueurs connectés] : ");
-			printf("Pid: %d\t", listePidClient[i]);
-			puts(listeClient[i]);
+		 scanf("%d", &i);
+		 
+		switch (i) {
+		case 0:
+			exit(0);
+			break;
+		case 1:	
+			printf("Elève mystère est : %s", personnageselect);
+			printf("\nAppuyer sur une touche pour continuer.\n");
+			attenteTouche();
+			attenteTouche();
+			break;
+			
+		case 2:
+			selection_aleatoire_perso(tableau, personnageselect);
+			printf("\nGénération effectuée.\n");
+			printf("Appuyer sur une touche pour continuer.\n");
+			attenteTouche();
+			attenteTouche();
+			break;
+		case 3:
+			partieEnCours = 1;
+			printf("\nAppuyer sur une touche pour continuer.\n");
+			attenteTouche();
+			break;
+		default:
+
+			break;
 		}
-		break;
-	case 3:
-		for(int i = 0; i <= dernierClient-1; i++){
-		
-			printf("[Génération nouveau élève mystère, je tue tout le monde] : ");
-			printf("Pid: %d\t", listePidClient[i]);
-			puts(listeClient[i]);
-			
-			kill(listePidClient[i], SIGKILL);
-		}
-		selection_aleatoire_perso(tableau, personnageselect);
-		
-		break;
-	case 4:
-		partieEnCours = 1;
-		int descW;
-		int lancement = 1;
-		
-		
-		for(int i = 0; i <= dernierClient-1; i++){
-			
-			descW=open(listeClient[i],O_WRONLY); //ouverture du pipe
-			write(descW, &lancement, sizeof(int));
-			close(descW);
-			
-			printf("[Génération nouveau élève mystère, je tue tout le monde] : ");
-			printf("Pid: %d\t", listePidClient[i]);
-			puts(listeClient[i]);
-			
-			kill(listePidClient[i], SIGKILL);
-		}
-		break;
-	case 5:
-
-		break;
-	case 6:
-
-		break;
-	default:
-
-		break;
-	}
-
+	}while(partieEnCours == 0);
 
 }
 
@@ -162,21 +147,16 @@ int main(int argc, char *argv[], char *arge[])
 	}
     wait(NULL); // on attende la fin du processus fils
     
+	
+	menuServeur(listeClient, listePidClient, dernierClient, tableau, personnageselect);
+
+	printf("Attente des clients: \n");
 	do{
 		
-		if (partieEnCours == 0)
-			menuServeur(listeClient, listePidClient, dernierClient, tableau, personnageselect);
-		
-		fcntl(descR, F_SETFL, O_NONBLOCK) ;
-		printf("yes");
 		descR=open(main,O_RDONLY); //ouverture du pipe
-		printf("yes");
-		
 		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
 		read(descR, messageRecu, sizeof(MessageClientServeur)); 
 		close(descR);
-		
-		printf("yes");
 		
 		if(messageRecu->type_message == 0){                                              //Il s'agit du cas ou le message recu est de type initialisation
 			strcpy(prenom, messageRecu->identite_envoyeur);
@@ -220,7 +200,7 @@ int main(int argc, char *argv[], char *arge[])
 
 void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES])
 {
-	srand(getpid());
+	srand(time(NULL));
 	int numerolignealeatoire = (rand() % NBR_PERSONNAGES);
 	printf("Le nombre aléatoire entre 0 et 18 est %d!\n", numerolignealeatoire);
 	strcpy(personnageselect, tableau[numerolignealeatoire]);

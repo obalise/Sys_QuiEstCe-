@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 	int opt = 1;
 	int addrlen = sizeof(address);
 	char buffer[1024] = {0};
-	char const *hello = argv[1];	
+	//char const *hello = argv[1];	
 	
 	printf("ALOHA!\n");
 	
@@ -63,7 +63,7 @@ int main(int argc, char const *argv[])
 		
 	valread = read( new_socket , buffer, 1024);
 	printf("%s\n",buffer );
-	send(new_socket , hello , strlen(hello) , 0 );
+	send(new_socket , argv[1] , strlen(argv[1]) , 0 );
 	printf("Hello message sent\n");
 	
 	 

@@ -32,6 +32,14 @@ void personnageTrouve();
 void partieDejaCommence();
 int attenteTouche ( void );
 
+void clean_stdin(void)
+{
+    int c;
+    do {
+        c = getchar();
+    } while (c != '\n' && c != EOF);
+}
+
 
 
 int main(void){
@@ -39,6 +47,7 @@ int main(void){
     signal(SIGINT, arretCTRLC); 
     signal(SIGUSR1, personnageTrouve);
     signal(SIGUSR2, partieDejaCommence);
+    signal(SIGILL, SIG_IGN);
 
 
     int descW, descR;
@@ -66,17 +75,24 @@ int main(void){
     write(descW, messageInitialisation, sizeof(MessageClientServeur));
     close(descW); // on ferme le descripteur
     sleep(1);
-
+    
+	printf("[CLIENT] 1\n");
+	
+	 printf("\nAttente du lancement de la partie !\n");
+	
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
     read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
     read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
+	close(descR);
     
-    printf("\nBase de données et élève mystère chargés !\nAttente du lancement de la partie !\n");
+    printf("[CLIENT] 2\n");
+    //printf("\nBase de données et élève mystère chargés !\nAttente du lancement de la partie !\n");
     
-    //On attend un entier qui nous permettra de lancer le jeu
-    read(descR, &lancement, sizeof(int));
-    close(descR);
+    //clean_stdin();
+	//pause();
 
+	 printf("[CLIENT] 3\n");
+	
     int resultat = menu(personnageselect, tableau);
 
 
@@ -116,11 +132,11 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
         printf("Program Error\n");
         exit(0);
     }
-    
+     printf("[CLIENT] 4\n");
     
     do {
         //menu global       
-        printf("\e[1;1H\e[2J");
+        //printf("\e[1;1H\e[2J");
         printf("\n********** Bienvenue dans le menu du jeu QUI EST-CE ? **********\n");
         printf("|  0 | Quitter le programme\n");
         printf("|  1 | Saisie caracteristique\n");

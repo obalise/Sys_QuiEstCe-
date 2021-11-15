@@ -14,8 +14,9 @@
 #define NBR_PERSONNAGES 19
 
 typedef struct messageClientServeur {
-    int type_message;         //0 Initialisation et 1 pour le message final une fois le jeu fini
-    int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 1 (message final de fin de partie)
+	int type_message;         //0 Initialisation et 1 pour le message final une fois le jeu fini
+	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 1 (message final de fin de partie)
+	pid_t pid;
     char identite_envoyeur [50];
 } MessageClientServeur;
 
@@ -27,61 +28,79 @@ void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void arretCTRLC(){exit(0);};
 char** str_split(char* , const char);
 
+int arretProgrammeGagnantTrouve = 0;
 
 
 int main(void){
-
-    signal(SIGINT, arretCTRLC); // ingnore ctrl+c
-
-    int descW, descR, nb;
+	
+	signal(SIGINT, arretCTRLC); // ingnore ctrl+c
+	signal(SIGUSR1, personnageTrouve);
+	
+	
+    int descW, descR;
     char prenom[50];
-    char buf[NBR_CARACTERES];
     char tableau[NBR_PERSONNAGES ][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
 
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
-    /* On demande le nom du client, qui est tu ?*/
-    printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
-    printf("Quel est votre Prenom?\n");
-    scanf("%s", prenom);
-
-    MessageClientServeur *messageInitialisation = malloc(sizeof(MessageClientServeur));
-    messageInitialisation->type_message = 0;
-    messageInitialisation->resultat = 0;
-    strcpy(messageInitialisation->identite_envoyeur, prenom);
-
-    /* penser à ajouter main entre ""*/
+	/* On demande le nom du client, qui est tu ?*/
+	printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
+	printf("Quel est votre Prenom?\n");
+	scanf("%s", prenom);
+	
+	MessageClientServeur *messageInitialisation = malloc(sizeof(MessageClientServeur));
+	messageInitialisation->type_message = 0;
+	messageInitialisation->resultat = 0;
+	messageInitialisation->pid = getpid();
+	strcpy(messageInitialisation->identite_envoyeur, prenom);
+	
+	/* penser à ajouter main entre ""*/
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
     write(descW, messageInitialisation, sizeof(MessageClientServeur));
     close(descW); // on ferme le descripteur
     sleep(1);
-
-    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
-    read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
-    //Voyons voir avec ce for si le tableau s'est rempli correctement
-    for(int i = 0; i <NBR_PERSONNAGES ; i++){
-        printf("%d -> ", i );
-        puts(tableau[i]);
-    }
-    printf("[CLIENT] OK 4\n");
-    read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
-    printf("[CLIENT] OK 5\n");
-    close(descR);
-
+	
+	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
+	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
+	//Voyons voir avec ce for si le tableau s'est rempli correctement
+	for(int i = 0; i <NBR_PERSONNAGES ; i++){
+	        printf("%d -> ", i );
+        	puts(tableau[i]); 
+    	}
+	read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
+	close(descR);
+	
     int resultat = menu(personnageselect, tableau);
-
-    MessageClientServeur *messageFinal = malloc(sizeof(MessageClientServeur));
-    messageFinal->type_message = 1;
-    messageFinal->resultat = resultat;
-    strcpy(messageFinal->identite_envoyeur, prenom);
-
-
-    descW=open("main",O_WRONLY);
-    write(descW, messageFinal,sizeof(MessageClientServeur));
-    close(descW); // on ferme le descripteur
-    printf("\nJ'vai m'balader !\n");
-    exit (8);
+	
+	if (resultat == 2){
+		
+		int descR;
+		char gagnant[50];
+		
+		printf("\nQuelqu'un a trouvé le personnage ! \n");
+		
+		descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
+		read(descR, gagnant, sizeof(char)*50);
+		close(descR);
+		printf("\n%s est le gagnant ! \n", gagnant);
+		
+		exit(0);
+		
+	}else if (resultat == 1){
+		
+		MessageClientServeur *messageFinal = malloc(sizeof(MessageClientServeur));
+		messageFinal->type_message = 1;
+		messageFinal->resultat = resultat;
+		messageFinal->pid = getpid();
+		strcpy(messageFinal->identite_envoyeur, prenom);	
+		
+		descW=open("main",O_WRONLY); 
+		write(descW, messageFinal,sizeof(MessageClientServeur)); 
+		close(descW); // on ferme le descripteur
+		printf("\nJ'vai m'balader !\n");
+		exit (8);
+	}
 }
 
 
@@ -205,28 +224,11 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                         printf ("|  4 | alcoolique\n");
                         printf ("|  5 | inexistant\n");
 
-                        scanf("%d",&i);
-                        switch(i)
-                        {
-                            case 0: break;
-                            case 1:
-                                strcpy(chaine_recherche,"faible");
-                                break;
-                            case 2:
-                                strcpy(chaine_recherche,"moyen");
-                                break;
-                            case 3:
-                                strcpy(chaine_recherche,"fort");
-                                break;
-                            case 4:
-                                strcpy(chaine_recherche,"alcoolique");
-                                break;
-                            case 5:
-                                strcpy(chaine_recherche,"inexistant");
-                                break;
-                            default:
-                                printf ("Invalide !\n");
-                                break;
+                    p_chaine_recherche = chaine_recherche;
+                    status = launch_regex(personnageselect,chaine_recherche);
+                    if ((status == 0) || (status == 1)) {
+                        if (status == 0) {
+                            printf("Votre personnage a la caractériqtique\n");
                         }
                         break;
                     default:
@@ -274,8 +276,9 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                 break;
         }
 
-    }while (i != 0);
-    return 3; //problème
+    }while (i != 0 && arretProgrammeGagnantTrouve == 0 );
+    printf("On sort du menu car quelqu'un d'autre a gagné\n");
+    return 2; 
 }
 
 int launch_regex(char *elu, char *p_chaine_recherche){
@@ -364,5 +367,9 @@ char** str_split(char* a_str, const char a_delim)
         *(result + idx) = 0;
     }
     return result;
+void personnageTrouve(){
+	
+	arretProgrammeGagnantTrouve = 1;
+	printf("[CLIENT] SIGUSR1 reçu!!!!\n");
 }
 

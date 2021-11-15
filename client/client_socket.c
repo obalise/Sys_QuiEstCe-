@@ -18,8 +18,8 @@ int main(int argc, char const *argv[])
 {
 	int sock = 0, status = 1, valread;
 	struct sockaddr_in serv_addr;
-	char prenom[50];
-	char *hello = "Hello from socket client";
+	//char prenom[50];
+	char const  *hello = "Hello from socket client";
 	char buffer[1024] = {0};
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{

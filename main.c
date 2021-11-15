@@ -122,18 +122,10 @@ int main(int argc, char *argv[], char *arge[])
 	signal(SIGUSR1, SIG_IGN);
 	signal(SIGALRM, fin);	 
 
-	
-	//INITIALISATION ?
     char tableau[NBR_PERSONNAGES][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
     
-    //int fd_serveur_socket[2][2];
-    
-    int descR, descW, test;
-
-	//int flags = fcntl(descR, F_GETFL, 0);
-	//fcntl(descR, F_SETFL, flags | O_NONBLOCK);
-    
+    int descR, descW, test;    
     
     pid_t pid, pid1;
 	int status=1, sec=0;
@@ -172,8 +164,6 @@ int main(int argc, char *argv[], char *arge[])
 	printf("Attente des %d joueurs.\n", nbrJoueur);
 	do{
 		
-		if(nbrJoueur == dernierClient)
-			partieEnCours = 1;
 		
 		/*         */
 		if(partieEnCours == 1){
@@ -184,18 +174,17 @@ int main(int argc, char *argv[], char *arge[])
 				printf("Pid: %d\t", listePidClient[i]);
 				printf("%s",listeClient[i]);
 				
-				//kill(listePidClient[i], SIGILL);
-				
-			clean_stdin();
-				
 			descW=open(listeClient[i],O_WRONLY); //ouverture du pipe
 			write(descW, passage, sizeof(char)*8);
 			close(descW);
-				
-			}
+			printf("ARGH6\n");
+			kill(listePidClient[i], SIGCHLD);
+			printf("ARGH7\n");
 			
+			}
 		}
 		
+		printf("ARGH\n");
 		descR=open(main,O_RDONLY); //ouverture du pipe
 		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
 		read(descR, messageRecu, sizeof(MessageClientServeur)); 
@@ -207,11 +196,12 @@ int main(int argc, char *argv[], char *arge[])
 
 			if(test == 0){
 				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
-				
+				printf("ARGH2\n");
 				if(partieEnCours == 0){
 				strcpy(listeClient[dernierClient], prenom);
 				listePidClient[dernierClient] = messageRecu->pid;
 				dernierClient++;
+				nbrJoueur--;
 				}
 				
 			}else{
@@ -239,6 +229,13 @@ int main(int argc, char *argv[], char *arge[])
 				gestionFinPartie(listeClient, listePidClient, dernierClient, gagnant);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
 				status = 0;
 		}
+		
+				if(nbrJoueur == 0){
+			partieEnCours = 1;
+			printf("ARGH5\n");
+		}
+		
+		
 	}while(status == 1);
 
 
@@ -306,12 +303,12 @@ void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CAR
 		write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
 		write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
 		close(descW);
+		printf("ARGH3\n");
 	}else if (partieEnCours == 1){
 		kill(pid_client, SIGUSR2);
 	}
 	exit(0);
 	}
-
 }
 
 void fin(int sig)

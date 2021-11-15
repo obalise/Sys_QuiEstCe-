@@ -78,7 +78,7 @@ int main(void){
     
 	printf("[CLIENT] 1\n");
 	
-	 printf("\nAttente du lancement de la partie !\n");
+	 //printf("\nAttente du lancement de la partie !\n");
 	
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
     read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
@@ -86,10 +86,18 @@ int main(void){
 	close(descR);
     
     printf("[CLIENT] 2\n");
-    //printf("\nBase de données et élève mystère chargés !\nAttente du lancement de la partie !\n");
+    printf("\nBase de données et élève mystère chargés !\nAttente du lancement de la partie !\n");
+    
+   /* while ( (descR=open(prenom,O_RDONLY))  == -1  )
+		printf("PUTAIN\n");
+		
+	char passage[8] ;
+	read(descR, passage, sizeof(passage));
+	close(descR);*/
     
     //clean_stdin();
-	//pause();
+    
+	pause();
 
 	 printf("[CLIENT] 3\n");
 	

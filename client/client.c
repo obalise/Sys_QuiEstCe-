@@ -29,23 +29,28 @@ void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void arretCTRLC(){exit(0);};
 char** str_split(char* , const char);
 void personnageTrouve();
+void partieDejaCommence();
 int attenteTouche ( void );
+
 
 
 int main(void){
 
     signal(SIGINT, arretCTRLC); 
     signal(SIGUSR1, personnageTrouve);
+    signal(SIGUSR2, partieDejaCommence);
 
 
     int descW, descR;
     char prenom[50];
     char tableau[NBR_PERSONNAGES ][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
+    int lancement =0;
 
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
     /* On demande le nom du client, qui est tu ?*/
+    printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
     printf("Bonjour et bienvenue dans le jeu \"Qui est-ce\" ?\n");
     printf("Quel est votre prenom ? (Exemples : Olivier, Arnaud...)\n");
     scanf("%s", prenom);
@@ -65,6 +70,11 @@ int main(void){
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
     read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
     read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
+    
+    printf("\nBase de données et élève mystère chargés !\nAttente du lancement de la partie !\n");
+    
+    //On attend un entier qui nous permettra de lancer le jeu
+    read(descR, &lancement, sizeof(int));
     close(descR);
 
     int resultat = menu(personnageselect, tableau);
@@ -107,10 +117,10 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
         exit(0);
     }
     
-    printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
     
     do {
         //menu global       
+        printf("\e[1;1H\e[2J");
         printf("\n********** Bienvenue dans le menu du jeu QUI EST-CE ? **********\n");
         printf("|  0 | Quitter le programme\n");
         printf("|  1 | Saisie caracteristique\n");
@@ -124,7 +134,6 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                 break;
             case 1:
                 printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
-                //affichagePersonnages(tableau);
                 //menu des caracteristiques
                 printf("|  1 | Couleur des yeux\n");
                 printf("|  2 | Couleur des cheveux\n");
@@ -167,7 +176,7 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                         }
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
-                        printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                         break;
                     case 2:
                         //menu des cheveux
@@ -203,7 +212,7 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                         }
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
-						printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                         break;
                     case 3:
                         //menu de la regularite à l'apéro
@@ -238,13 +247,13 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                         }
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
-						printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                         break;
                     default:
                         printf ("Invalide !\n");
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
-						printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                         break;
                 }
 
@@ -254,19 +263,19 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                         printf("Votre personnage possède bien cette caractéristique\n");
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
-						printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                     }
                     if (status == 1) {
                         printf("Votre personnage n'a pas cette caractéristique\n");
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
-						printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                     }
                 } else {
                     printf("Erreur comparaison Regex avec la caractéristique !\n");
                     printf("Appuyer sur une touche pour continuer.\n");
 					attenteTouche();
-					printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                     exit(0);
                 }
                 break;
@@ -287,19 +296,22 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                     if (status == 1) {
 						printf("Pénalité ! Vous devez attendre 3 secondes avant de pouvoir reprendre la partie !\n");
                         sleep(3);
-                        printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                     }
                 } else {
                     printf("Erreur comparaison Regex avec l'élève mystère !\n");
                     printf("Appuyer sur une touche pour continuer.\n");
 					attenteTouche();
-					printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
+
                     exit(0);
                 }
                 break;
             case 3:
 				printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
                 affichagePersonnages(tableau);
+                printf("\nAppuyer sur une touche pour continuer.\n");
+				attenteTouche();
+				attenteTouche();
                 break;
             default:
                 break;
@@ -394,7 +406,16 @@ char** str_split(char* a_str, const char a_delim) {
 }
 
 void personnageTrouve() {
-    printf("Un de vos adversaires vous a devancé et a trouvé l'élève caché !\nLa carte Olimex vous dévoilera de qui il s'agit !\n");
+    printf("\nUn de vos adversaires vous a devancé et a trouvé l'élève caché !\nLa carte Olimex vous dévoilera de qui il s'agit !\n");
+	printf("\nAppuyer sur une touche pour continuer.\n");
+	attenteTouche();
+	exit(0);
+}
+
+
+void partieDejaCommence(){
+	printf("\nLa partie a déjà commencé ! Impossible de participer pour le moment, réessayer plus tard s'il vous plaît.\n");
+	exit(0);
 }
 
 

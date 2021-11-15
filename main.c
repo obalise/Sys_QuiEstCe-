@@ -28,14 +28,92 @@ START_TEST (test_name)
 END_TEST*/
 
 const char* filename = "eleve.txt";
+int partieEnCours = 0;
 
 /*Prototype*/
 void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]);
 void launch_regex();
-int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ]);
+int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ],pid_t pid_client);
 int gestionFinPartie(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int listePidClient[NBR_PERSONNAGES], int dernierClient, char identite_envoyeur[50]);
 void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES]);
 void fin(int sig);
+
+
+void menuServeur(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int listePidClient[NBR_PERSONNAGES], int dernierClient, char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ]){
+	int i = 0;
+	
+	
+	printf("\e[1;1H\e[2J");
+	printf("\n********** Bienvenue dans le menu Serveur du jeu QUI EST-CE ? **********\n");
+	printf("|  0 | Quitter le programme\n");
+	printf("|  1 | Voir l'élève mystère actuel\n");
+	printf("|  2 | Voir les joueurs connectés\n");
+	printf("|  3 | Génération de l'élève mystère (deconnexion forcée des joueurs actuels)\n");
+	printf("|  4 | Lancement de la partie\n");	
+	
+	 scanf("%d", &i);
+	 
+	switch (i) {
+	case 0:
+		exit(0);
+		break;
+	case 1:
+		puts(personnageselect);
+		break;
+		
+	case 2:
+		for(int i = 0; i <= dernierClient-1; i++){
+		
+			printf("[Liste des joueurs connectés] : ");
+			printf("Pid: %d\t", listePidClient[i]);
+			puts(listeClient[i]);
+		}
+		break;
+	case 3:
+		for(int i = 0; i <= dernierClient-1; i++){
+		
+			printf("[Génération nouveau élève mystère, je tue tout le monde] : ");
+			printf("Pid: %d\t", listePidClient[i]);
+			puts(listeClient[i]);
+			
+			kill(listePidClient[i], SIGKILL);
+		}
+		selection_aleatoire_perso(tableau, personnageselect);
+		
+		break;
+	case 4:
+		partieEnCours = 1;
+		int descW;
+		int lancement = 1;
+		
+		
+		for(int i = 0; i <= dernierClient-1; i++){
+			
+			descW=open(listeClient[i],O_WRONLY); //ouverture du pipe
+			write(descW, &lancement, sizeof(int));
+			close(descW);
+			
+			printf("[Génération nouveau élève mystère, je tue tout le monde] : ");
+			printf("Pid: %d\t", listePidClient[i]);
+			puts(listeClient[i]);
+			
+			kill(listePidClient[i], SIGKILL);
+		}
+		break;
+	case 5:
+
+		break;
+	case 6:
+
+		break;
+	default:
+
+		break;
+	}
+
+
+}
+
 
 int main(int argc, char *argv[], char *arge[])
 {
@@ -47,7 +125,13 @@ int main(int argc, char *argv[], char *arge[])
     
     //int fd_serveur_socket[2][2];
     
-    int descR, test, pid, pid1;
+    int descR, test;
+
+	//int flags = fcntl(descR, F_GETFL, 0);
+	//fcntl(descR, F_SETFL, flags | O_NONBLOCK);
+    
+    
+    pid_t pid, pid1;
 	int status=1, sec=0;
     char prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
@@ -57,7 +141,6 @@ int main(int argc, char *argv[], char *arge[])
 	char * myArgv[3];	
 	
 	sec = atoi(argv[1]);	
-
 	alarm(sec);
     signal(SIGALRM, fin);	 
     
@@ -65,6 +148,7 @@ int main(int argc, char *argv[], char *arge[])
     unlink(main);
     mkfifo(main,0666); 
     
+    printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
     return_tableau(tableau);
     selection_aleatoire_perso(tableau, personnageselect); //Pour l'instant on a un seul personnage pour tous les clients, sinon on prend cette ligne et on la met plus bas dans le if(test==0)
     
@@ -79,19 +163,27 @@ int main(int argc, char *argv[], char *arge[])
     wait(NULL); // on attende la fin du processus fils
     
 	do{
-		printf("Je suis en train d'attendre un message d'un client quelconque...\n");
+		
+		if (partieEnCours == 0)
+			menuServeur(listeClient, listePidClient, dernierClient, tableau, personnageselect);
+		
+		fcntl(descR, F_SETFL, O_NONBLOCK) ;
+		printf("yes");
 		descR=open(main,O_RDONLY); //ouverture du pipe
+		printf("yes");
+		
 		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
 		read(descR, messageRecu, sizeof(MessageClientServeur)); 
 		close(descR);
 		
+		printf("yes");
+		
 		if(messageRecu->type_message == 0){                                              //Il s'agit du cas ou le message recu est de type initialisation
-			printf("Client: %s\n", messageRecu->identite_envoyeur);
 			strcpy(prenom, messageRecu->identite_envoyeur);
 			test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
 
 			if(test == 0){
-				gestionNouveauClient(prenom, tableau, personnageselect);
+				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
 
 				strcpy(listeClient[dernierClient], prenom);
 				listePidClient[dernierClient] = messageRecu->pid;
@@ -117,7 +209,6 @@ int main(int argc, char *argv[], char *arge[])
 					execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
 					//execv("/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket", myArgv);
 				}
-				
 				gestionFinPartie(listeClient, listePidClient, dernierClient, gagnant);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
 				status = 0;
 		}
@@ -170,7 +261,7 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
     printf("Sortie du fichier\n");
 }
 
-int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ])
+int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], pid_t pid_client)
 {
 	int pid2,descW;
     char chemin[9]= "./pipe/";
@@ -183,11 +274,14 @@ int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARA
 	unlink(chemin);
 	mkfifo(chemin,0666); 
 
-	descW=open(chemin,O_WRONLY); //ouverture du pipe
-	write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
-	write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
-	close(descW);
-	
+	if (partieEnCours == 0){
+		descW=open(chemin,O_WRONLY); //ouverture du pipe
+		write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
+		write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
+		close(descW);
+	}else{
+		kill(pid_client, SIGUSR2);
+	}
 	exit(0);
 	}
 	return 74;
@@ -201,11 +295,6 @@ void fin(int sig)
 
 int gestionFinPartie(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int listePidClient[NBR_PERSONNAGES], int dernierClient, char nomGagnant[50])
 {
-	//kill(0, SIGUSR1);
-	int descW;
-	chdir ("./pipe/");
-	printf("[GESTION FIN PARTIE] : ");
-	
 	for(int i = 0; i <= dernierClient-1; i++){
 		
 		printf("[GESTION FIN PARTIE] : ");
@@ -214,11 +303,6 @@ int gestionFinPartie(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int lis
 		
 		kill(listePidClient[i], SIGUSR1);
 				
-		descW=open(listeClient[i],O_WRONLY); 
-		
-		write(descW, nomGagnant, sizeof(char)*50);
-		
-		close(descW);	
 	}
 	return 0;
 }

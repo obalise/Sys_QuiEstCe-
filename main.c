@@ -32,6 +32,7 @@ const char* filename = "eleve.txt";
 void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]);
 void launch_regex();
 int gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ]);
+int gestionFinPartie();
 int serveur(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES], int sec);
 void selection_aleatoire_perso(char tableau[NBR_PERSONNAGES][NBR_CARACTERES], char personnageselect[NBR_CARACTERES]);
 void fin(int sig);
@@ -44,7 +45,7 @@ int main(int argc, char *argv[], char *arge[])
     
     //int fd_serveur_socket[2][2];
     
-    int descR, nb, test, pid;
+    int descR, nb, test, pid, pid1;
 	int status=1, sec=0;
     char buf[NBR_CARACTERES ], prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
@@ -63,18 +64,15 @@ int main(int argc, char *argv[], char *arge[])
     return_tableau(tableau);
     selection_aleatoire_perso(tableau, personnageselect); //Pour l'instant on a un seul personnage pour tous les clients, sinon on prend cette ligne et on la met plus bas dans le if(test==0)
     
-    
-    pid=fork();	
-	if(pid == 0)
+	pid1=fork();	
+	if(pid1 == 0)
 	{
-		unlink("pipeServeurSocket");
-		mkfifo("pipeServeurSocket", 0666);              //Uniquement pour parler vers le serveur à socket
-		
-		myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
-        myArgv[1]="le gagnant";
+		myArgv[0]="home/isen/Sys_QuiEstCe-/stats";
+        myArgv[1]="/home/isen/Sys_QuiEstCe-/pipe/main";
 		myArgv[2]=NULL;
-        execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+        execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
 	}
+    wait(NULL); // on attende la fin du processus fils
     
 	while(status)
 	{
@@ -91,20 +89,32 @@ int main(int argc, char *argv[], char *arge[])
 
 			if(test == 0){
 				gestionNouveauClient(prenom, tableau, personnageselect);
+				//ajouter une liste des prenoms pour plus tard pouvoir les envoyer 
 			}else{
 				printf("Tentative de connexion d'une personne non autorisée !\n");
 			}	
-			
-		}else if(messageRecu->type_message == 1){
-			if(messageRecu->resultat == 1)
+
+		}else if(messageRecu->type_message == 1 && messageRecu->resultat == 1){
 				printf("\n%s a trouvé l'élève caché, Bravo !\n", messageRecu->identite_envoyeur);
-			if(messageRecu->resultat == 0)
+				//gestionFinPartie(...);            Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
+				
+				pid=fork();	
+				if(pid == 0)
+				{		
+					myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
+					myArgv[1]= messageRecu->identite_envoyeur;
+					myArgv[2]= NULL;
+					execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+				}
+				
+				
+		}else if(messageRecu->type_message == 1 && messageRecu->resultat == 0){
 				printf("\n%s n'a pas trouvé l'élève caché, gros pouce vers le bas pour toi !\n", messageRecu->identite_envoyeur);
 				
 		}else if (messageRecu->type_message == 2){
 			printf("\nJ'ai reçu un message du serveur de socket ! L'initialisation d'un client Socket est en cours !\n");
+			
 		}
-		
 	}
 
 	//serveur(tableau, personnageselect, sec);

@@ -13,18 +13,6 @@
 #include <regex.h>
 #define PORT 8080
 
-typedef struct messageServeurServeurSock {
-	int type_message;         //2 Initialisation et 3 pour le message final une fois le jeu fini
-	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 3(message final de fin de partie)
-    char identite_envoyeur [50];
-} MessageServeurServeurSock;
-
-typedef struct messageClientServeurSock {
-	int type_message;         //2 Initialisation et 1 pour le message final une fois le jeu fini
-	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 3 (message final de fin de partie)
-    char identite_envoyeur [50];
-} MessageClientServeurSock;
-
 int main(int argc, char const *argv[])
 {
 	int server_fd, new_socket, valread;
@@ -71,20 +59,10 @@ int main(int argc, char const *argv[])
 		exit(EXIT_FAILURE);
 	}
 	
-	MessageClientServeurSock *messageInitialisation = malloc(sizeof(MessageClientServeurSock));
-	valread = read( new_socket , messageInitialisation, 1024);
-	
-	printf("%d  %d  %s\n",messageInitialisation->type_message, messageInitialisation->resultat, messageInitialisation->identite_envoyeur );
-	send(new_socket , hello , strlen(hello) , 0 );
+	send(new_socket , argv[1] , strlen(argv[1]) , 0 );
 	printf("Hello message sent\n");
 	
 	
-	int descW;
-	
-	chdir("./pipe"); 
-	descW = open("main",O_WRONLY); // on ouvre le pipe main en ecriture
-    write(descW, messageInitialisation, sizeof(MessageServeurServeurSock));
-    close(descW); // on ferme le descripteur
 	 
 	return 0;
 }

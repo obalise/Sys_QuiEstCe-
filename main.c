@@ -107,21 +107,22 @@ int main(int argc, char *argv[], char *arge[])
 				char  gagnant[50];
 				strcpy(gagnant, messageRecu->identite_envoyeur);
 				
-			/*	pid=fork();	
+			    pid=fork();	
 				if(pid == 0)
 				{							
-					myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
+					//myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
+					myArgv[0]="/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket";
 					myArgv[1]= gagnant;
 					myArgv[2]= NULL;
-					execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
-				}*/
+					//execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+					execv("/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket", myArgv);
+				}
 				
 				gestionFinPartie(listeClient, listePidClient, dernierClient, gagnant);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
 				status = 0;
 		}
 	}while(status == 1);
 
-	//serveur(tableau, personnageselect, sec);
 
  	return 0;
 }

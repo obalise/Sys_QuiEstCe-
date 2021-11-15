@@ -1,3 +1,10 @@
 cmake-build-debug/
 .idea/
 CMakeLists.txt
+main
+
+client/client
+
+client/client_socket
+
+socket

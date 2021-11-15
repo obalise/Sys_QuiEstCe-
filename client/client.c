@@ -47,7 +47,7 @@ int main(void){
     signal(SIGINT, arretCTRLC); 
     signal(SIGUSR1, personnageTrouve);
     signal(SIGUSR2, partieDejaCommence);
-    signal(SIGILL, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN);
 
 
     int descW, descR;

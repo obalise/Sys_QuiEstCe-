@@ -9,75 +9,91 @@
 #include <sys/stat.h>
 #include <regex.h>
 
-void menu (char personnageselect[80], char tableau[20][80]);
+#define NBR_CARACTERES 80
+#define NBR_PERSONNAGES 19
+
+typedef struct messageClientServeur {
+	int type_message;         //0 Initialisation et 1 pour le message final une fois le jeu fini
+	int resultat;  					  //0 si on n'a pas trouvé, 1 si on trouve -> ce parametre est utile uniquement si le message est de type 1 (message final de fin de partie)
+    char identite_envoyeur [50];
+} MessageClientServeur;
+
+
+int menu (char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void strcpy_pointeur(char *, char);
 int launch_regex(char *, char *);
-void affichagePersonnages(char tableau[20][80]);
+void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
+void arretCTRLC(){exit(0);};
+void personnageTrouve();
 
 
 int main(void){
-    int descW,descR,nb;
+	
+	signal(SIGINT, arretCTRLC); // ingnore ctrl+c
+	signal(SIGUSR1, personnageTrouve);
+    int descW, descR, nb;
     char prenom[50];
-    //char prenomcpy[50];
-    char buf[80];
-    char tableau[20][80];
-    char personnageselect[80];
+    char buf[NBR_CARACTERES];
+    char tableau[NBR_PERSONNAGES ][NBR_CARACTERES];
+    char personnageselect[NBR_CARACTERES];
 
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
-    /* On demande le nom du client, qui est tu ?*/
-    printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
-    printf("Quel est votre Prenom?\n");
-    scanf("%s", prenom);
-
-    //strcpy(prenomcpy,prenom); //artifice sinon on coupe les deux premier caractères du tableau ???
-
-    /* penser à ajouter main entre ""*/
+	/* On demande le nom du client, qui est tu ?*/
+	printf("Bonjour bienvenu de le jeu Qui est-ce ?\n");
+	printf("Quel est votre Prenom?\n");
+	scanf("%s", prenom);
+	
+	MessageClientServeur *messageInitialisation = malloc(sizeof(MessageClientServeur));
+	messageInitialisation->type_message = 0;
+	messageInitialisation->resultat = 0;
+	strcpy(messageInitialisation->identite_envoyeur, prenom);
+	
+	/* penser à ajouter main entre ""*/
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
-    write(descW,prenom,20); // on ecrit le nom du nouveau client
-
+    write(descW, messageInitialisation, sizeof(MessageClientServeur));
     close(descW); // on ferme le descripteur
     sleep(1);
+	
+	descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
+	read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
+	//Voyons voir avec ce for si le tableau s'est rempli correctement
+	for(int i = 0; i <NBR_PERSONNAGES ; i++){
+	        printf("%d -> ", i );
+        	puts(tableau[i]); 
+    	}
+      printf("[CLIENT] OK 4\n");
+	read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
+	 printf("[CLIENT] OK 5\n");
+	close(descR);
+	
+    int resultat = menu(personnageselect, tableau);
 
-    descR=open(prenom,O_RDONLY); // on ouvre le pipe main en ecriture
-    nb=read(descR,buf,20);
-    buf[nb]='\0';
-    printf("Retour serveur: %s\n",buf);
-
-
-    read(descR, tableau, sizeof(char)*20*80);
-
-    //Voyons voir avec ce for si le tableau s'est rempli correctement
-    for(int i = 0; i < 20; i++)
-    {
-        printf("%d -> ", i );
-        puts(tableau[i]);
-    }
-
-    //read(descR, personnageselect, sizeof(char)*80);
-    read(descR, personnageselect, sizeof(char)*80);
-
-    printf("Personnage selectionné -> ");
-    puts(personnageselect);
-
-    menu(personnageselect, tableau);
-    sleep(30);
-    close(descR);
+	MessageClientServeur *messageFinal = malloc(sizeof(MessageClientServeur));
+	messageFinal->type_message = 1;
+	messageFinal->resultat = resultat;
+	strcpy(messageFinal->identite_envoyeur, prenom);
+	
+	
+	descW=open("main",O_WRONLY); 
+	write(descW, messageFinal,sizeof(MessageClientServeur)); 
+	close(descW); // on ferme le descripteur
+    printf("\nJ'vai m'balader !\n");
+    exit (8);
 }
 
-void menu(char personnageselect[80], char tableau[20][80]){
-    printf("Personnage selectionné -> ");
-    printf("%s",personnageselect);
+
+int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
     int i = 0 ;
-    char chaine_recherche[80];
+    char chaine_recherche[NBR_CARACTERES];
     char *p_chaine_recherche;
     int status = 0;
     bool recherche_personnage = false;
 
     do{
         //menu global
-        printf("\n********** Bienvenu dans le menu du jeux QUI EST CE????? **********\n");
+        printf("\n********** Bienvenue dans le menu du jeu QUI EST-CE ? **********\n");
         printf ("|  0 | Quitter le programme\n");
         printf ("|  1 | Saisie caracteristique\n");
         printf ("|  2 | Proposition de l'eleve\n");
@@ -92,9 +108,6 @@ void menu(char personnageselect[80], char tableau[20][80]){
             case 1:
 				printf("\e[1;1H\e[2J"); //Nettoie l'écran de la console
 				affichagePersonnages(tableau);
-                i = 0;
-
-                do{
                     //menu des caracteristiques
                     printf ("|  1 | couleur des yeux\n");
                     printf ("|  2 | couleur des cheveux\n");
@@ -105,9 +118,6 @@ void menu(char personnageselect[80], char tableau[20][80]){
                     {
                         case 0: break;
                         case 1:
-                            i = 0 ;
-
-                            do{
                                 //menu des yeux
                                 printf ("|  1 | vert\n");
                                 printf ("|  2 | lunettes\n");
@@ -135,15 +145,11 @@ void menu(char personnageselect[80], char tableau[20][80]){
                                         strcpy(chaine_recherche,"noisette");
                                         break;
                                     default:
+										 printf ("Invalide !\n");
                                         break;
                                 }
-                                i =0;
-                            }while (i != 0);
                             break;
                         case 2:
-                            i = 0 ;
-
-                            do{
                                 //menu des cheveux
                                 printf ("|  1 | chatain\n");
                                 printf ("|  2 | grisonant\n");
@@ -154,7 +160,9 @@ void menu(char personnageselect[80], char tableau[20][80]){
                                 scanf("%d",&i);
                                 switch(i)
                                 {
-                                    case 0: break;
+                                    case 0: 
+                                    
+                                    break;
                                     case 1:
                                         strcpy(chaine_recherche,"chatain");
                                         break;
@@ -171,15 +179,11 @@ void menu(char personnageselect[80], char tableau[20][80]){
                                         strcpy(chaine_recherche,"boucle");
                                         break;
                                     default:
+                                     printf ("Invalide\n");
                                         break;
                                 }
-                                i =0;
-                            }while (i != 0);
                             break;
                         case 3:
-                            i = 0 ;
-
-                            do{
                                 //menu de la regularite à l'apéro
                                 printf ("|  1 | faible\n");
                                 printf ("|  2 | moyen\n");
@@ -207,12 +211,12 @@ void menu(char personnageselect[80], char tableau[20][80]){
                                         strcpy(chaine_recherche,"inexistant");
                                         break;
                                     default:
+										printf ("Invalide !\n");
                                         break;
                                 }
-                                i =0;
-                            }while (i != 0);
                             break;
-                        default:
+						default:
+							 printf ("Invalide !\n");
                             break;
                     }
 
@@ -220,33 +224,31 @@ void menu(char personnageselect[80], char tableau[20][80]){
                     status = launch_regex(personnageselect,chaine_recherche);
                     if ((status == 0) || (status == 1)) {
                         if (status == 0) {
-                            printf("Votre personnage a la caractériqtique %s\n", p_chaine_recherche);
+                            printf("Votre personnage a la caractériqtique\n");
                         }
                         if (status == 1) {
-                            printf("Votre personnage n'a pas la caractériqtique %s\n", p_chaine_recherche);
+                            printf("Votre personnage n'a pas la caractériqtique\n");
                         }
                     }
                     else{
                         printf("Program Error\n");
                         exit(0);
                     }
-
-                }while (i != 0);
-                i = 1;
                 break;
             case 2:
-                i = 0;
                 recherche_personnage = true;
                 printf("Quel est le nom du personnage mystere\n");
                 scanf("%s", chaine_recherche);
                 status = launch_regex(personnageselect,chaine_recherche);
-                if ((status == 0) || (status == 1)){
+                
+                if ((status == 0) || (status == 1)){     //C'est surement le if le plus chelou que j'ai vu, faut le changer ou le prof se moquera de nous.
                     if (status == 0){
-                        printf("Personnage trouve%s\n", p_chaine_recherche);
+                        printf("Personnage trouve %s ! C'est gagné !\n", p_chaine_recherche);
+                        return 1;
                     }
                     if (status == 1){
-                        printf("Personnage faux, Vous pourez rependre votre parti dans 3s%s\n", p_chaine_recherche);
-                        sleep(3);
+                        printf("Personnage faux,  c'était %s ! C'est perdu !\n", p_chaine_recherche);
+                        return 0;
                     }
                 }
                 else{
@@ -255,7 +257,6 @@ void menu(char personnageselect[80], char tableau[20][80]){
                 }
                 break;
             case 3:
-                i = 0;
                 affichagePersonnages(tableau);
                 break;
             default:
@@ -265,8 +266,8 @@ void menu(char personnageselect[80], char tableau[20][80]){
             printf("Arret partie");
             // fonction retour pipe
         }
-
     }while (i != 0);
+    return 3; //problème
 }
 
 int launch_regex(char *elu, char *p_chaine_recherche){
@@ -305,13 +306,19 @@ int launch_regex(char *elu, char *p_chaine_recherche){
 }
 
 
-void affichagePersonnages(char tableau[20][80]){
+void affichagePersonnages(char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]){
 	
 	printf("Liste des Personnages et de leurs caractéristiques: \n");
-	 for(int i = 0; i < 19; i++)
+	 for(int i = 0; i < NBR_PERSONNAGES ; i++)
     {
         printf("%d -> ", i );
         puts(tableau[i]);
     }
+	
+}
+
+void personnageTrouve(){
+	
+	
 	
 }

@@ -281,6 +281,8 @@ int main(int argc, char *argv[], char *arge[])
 		printf("Pid: %d  ", listePidClient[i]);
 		printf("Nom%s\n",listeClient[i]);
 		
+		
+		sleep(5);
 		kill(listePidClient[i], SIGCHLD);
 	}
 	
@@ -401,6 +403,8 @@ void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CAR
 		write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
 		close(descW);
 		printf("Après avoir envoyé au client le tableau et le personnage select\n");
+		
+		sleep(5);
 	}else if (partieEnCours == 1){
 		kill(pid_client, SIGUSR2);
 	}

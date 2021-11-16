@@ -74,7 +74,7 @@ void menuServeur(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int listePi
 		printf("|  1 | Voir l'élève mystère actuel\n");
 		printf("|  2 | Génération de l'élève mystère (deconnexion forcée des joueurs actuels)\n");
 		printf("|  3 | Selection nombre de Client attendu\n");	
-		printf("|  4 | Début attente des joueurs : %d joueurs prévus\n", nbrJoueur);	
+		printf("|  4 | Début attente des joueur(s) : %d joueurs prévus\n", nbrJoueur);	
 		
 		 scanf("%d", &i);
 		 
@@ -125,10 +125,10 @@ int main(int argc, char *argv[], char *arge[])
     char tableau[NBR_PERSONNAGES][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
     
-    int descR, descW, test;    
+    int descR, test, partieFini;    
     
     pid_t pid, pid1;
-	int status=1, sec=0;
+	int sec=0;
     char prenom[50];
 	char main[NBR_PERSONNAGES]= "./pipe/main";
 	char listeClient [NBR_PERSONNAGES][NBR_CARACTERES];
@@ -157,102 +157,96 @@ int main(int argc, char *argv[], char *arge[])
         execv("/home/isen/Sys_QuiEstCe-/stats", myArgv);
 	}
     wait(NULL); // on attend la fin du processus fils
-    
-    
-    //FAIRE UN WHILE POUR REBOUCLER SUR LE MENU UNE FOIS LA PARTIE TERMINEE
-	
-	menuServeur(listeClient, listePidClient, dernierClient, tableau, personnageselect);
 
-	printf("Attente des %d joueurs.\n", nbrJoueur);
-	
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	while (nbrJoueur != 0){
-		descR=open(main,O_RDONLY); //ouverture du pipe
-		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
-		read(descR, messageRecu, sizeof(MessageClientServeur)); 
-		close(descR);
+ 
+	while(1){
 		
-		if(messageRecu->type_message == 0){                                             
-			strcpy(prenom, messageRecu->identite_envoyeur);
-			test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
+		menuServeur(listeClient, listePidClient, dernierClient, tableau, personnageselect);
 
-			if(test == 0){
-				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
-				
-				strcpy(listeClient[dernierClient], prenom);
-				listePidClient[dernierClient] = messageRecu->pid;
-				dernierClient++;
-				nbrJoueur--;
-				
-				printf("Nouveau Joueur connecté : Prenom %s, PID %d\n", messageRecu->identite_envoyeur, messageRecu->pid);
-
-			}else{
-				printf("Tentative de connexion d'une personne non autorisée !\n");
-				kill(messageRecu->pid, SIGKILL);
-				printf("Processus intrus assassiné avec un SIGKILL !\n");
-			}	
-
-		}
-	}
-	
-	partieEnCours = 1;
-	printf("\nTous les joueurs se sont connectés.\n");
-	/*
-	for(int i = 0; i<= dernierClient-1; i++){
-		printf("[Boucle For permettant d'envoyer un signal à chaque client] : ");
-		printf("Pid: %d  ", listePidClient[i]);
-		printf("Nom%s\n",listeClient[i]);
-	} */
-	
-	
-	while (1){
-		descR=open(main,O_RDONLY); //ouverture du pipe
-		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
-		read(descR, messageRecu, sizeof(MessageClientServeur)); 
-		close(descR);
+		printf("Partie lancée : Attente des %d joueurs.\n", nbrJoueur);
 		
-		if(messageRecu->type_message == 0){                                             
-			strcpy(prenom, messageRecu->identite_envoyeur);
-			test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
+		partieEnCours = 0;
 
-			if(test == 0){
-				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
-				
-			}else{
-				printf("Tentative de connexion d'une personne non autorisée !\n");
-				kill(messageRecu->pid, SIGKILL);
-				printf("Processus intrus assassiné avec un SIGKILL !\n");
-			}	
-		
-		}else if(messageRecu->type_message == 1 && messageRecu->resultat == 1){
+		while (nbrJoueur != 0){
+			descR=open(main,O_RDONLY); //ouverture du pipe
+			MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
+			read(descR, messageRecu, sizeof(MessageClientServeur)); 
+			close(descR);
 			
-			printf("\n%s a trouvé l'élève caché, Bravo !\n", messageRecu->identite_envoyeur);
-			
-			char  gagnant[50];
-			strcpy(gagnant, messageRecu->identite_envoyeur);
-			
-			pid=fork();	
-			if(pid == 0)
-			{							
-				myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
-				//myArgv[0]="/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket";
-				myArgv[1]= gagnant;
-				myArgv[2]= NULL;
-				execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
-				//execv("/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket", myArgv);
+			if(messageRecu->type_message == 0){                                             
+				strcpy(prenom, messageRecu->identite_envoyeur);
+				test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier")*strcmp(prenom,"Vincent")*strcmp(prenom,"Arnaud")*strcmp(prenom,"Anakin")*strcmp(prenom,"Mathieu")*strcmp(prenom,"Sabrina")*strcmp(prenom,"Guillaume")*strcmp(prenom,"Thomas")*strcmp(prenom,"Remi")*strcmp(prenom,"Frederic")*strcmp(prenom,"Maxime")*strcmp(prenom,"Eddy")*strcmp(prenom,"Emmanuel")*strcmp(prenom,"Yoni")*strcmp(prenom,"Claude")*strcmp(prenom,"Romain"));	
+
+				if(test == 0){
+					gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
+					
+					strcpy(listeClient[dernierClient], prenom);
+					listePidClient[dernierClient] = messageRecu->pid;
+					dernierClient++;
+					nbrJoueur--;
+					
+					printf("Nouveau Joueur connecté : Prenom %s, PID %d\n", messageRecu->identite_envoyeur, messageRecu->pid);
+
+				}else{
+					printf("Tentative de connexion d'une personne non autorisée !\n");
+					kill(messageRecu->pid, SIGKILL);
+					printf("Processus intrus assassiné avec un SIGKILL !\n");
+				}	
+
 			}
-			gestionFinPartie(listeClient, listePidClient, dernierClient, gagnant);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
-			status = 0;
 		}
+		
+
+		partieEnCours = 1;
+		
+		printf("\nTous les joueurs se sont connectés.\n");
+		
+		partieFini = 1;
+		
+		while (partieFini == 1){
+			descR=open(main,O_RDONLY); //ouverture du pipe
+			MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
+			read(descR, messageRecu, sizeof(MessageClientServeur)); 
+			close(descR);
+			
+			if(messageRecu->type_message == 0){                                             
+				strcpy(prenom, messageRecu->identite_envoyeur);
+				test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
+
+				if(test == 0){
+					gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
+					
+				}else{
+					printf("Tentative de connexion d'une personne non autorisée !\n");
+					kill(messageRecu->pid, SIGKILL);
+					printf("Processus intrus assassiné avec un SIGKILL !\n");
+				}	
+			
+			}else if(messageRecu->type_message == 1 && messageRecu->resultat == 1){
+				
+				printf("\n%s a trouvé l'élève caché, Bravo !\n", messageRecu->identite_envoyeur);
+				
+				char  gagnant[50];
+				strcpy(gagnant, messageRecu->identite_envoyeur);
+				
+				pid=fork();	
+				if(pid == 0)
+				{							
+					myArgv[0]="home/isen/Sys_QuiEstCe-/socket";
+					//myArgv[0]="/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket";
+					myArgv[1]= gagnant;
+					myArgv[2]= NULL;
+					execv("/home/isen/Sys_QuiEstCe-/socket", myArgv);
+					//execv("/home/zeus/Bureau/Projet SYSEXP/Sys_QuiEstCe-/socket", myArgv);
+				}
+				gestionFinPartie(listeClient, listePidClient, dernierClient, gagnant);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
+			}
+			partieFini = 0;
+		}
+		printf("Appuyer sur une touche pour continuer.\n");
+		attenteTouche();
+		attenteTouche();
 	}
-	
-	
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
  	return 0;
 }
@@ -311,10 +305,10 @@ void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CAR
 	//printf("on est dans le fils de %s\n",prenom);
 	strcat(chemin,prenom);
 	
-	if(unlink(chemin) < 0)
-		printf("UNLINK MARCHE PAS !\n");
-	if(mkfifo(chemin,0666) < 0)
-		printf("MKFIFO MARCHE PAS !\n");
+	if(unlink(chemin) < 0);
+		//printf("UNLINK MARCHE PAS !\n");
+	if(mkfifo(chemin,0666) < 0);
+		//printf("MKFIFO MARCHE PAS !\n");
 
 	if (partieEnCours == 0){
 		descW=open(chemin,O_WRONLY); //ouverture du pipe

@@ -16,7 +16,7 @@
 
 int main(int argc, char const *argv[])
 {
-	int sock = 0, status = 1, valread;
+	int sock = 0, status = 1;
 	struct sockaddr_in serv_addr;
 	//char prenom[50];
 	char const  *hello = "Hello from socket client";
@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
 
 	send(sock , hello , strlen(hello) , 0 );
 	printf("Hello message sent\n");
-	valread = read( sock , buffer, 1024);
+	read( sock , buffer, 1024);
 	printf("%s\n",buffer );
 	
 	return 0;

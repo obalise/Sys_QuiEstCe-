@@ -40,25 +40,18 @@ void clean_stdin(void)
     } while (c != '\n' && c != EOF);
 }
 
-void signalReprise(sig){
-	printf("FUCK\n");
-	}
-
-
 int main(void){
 
     signal(SIGINT, arretCTRLC); 
     signal(SIGUSR1, personnageTrouve);
     signal(SIGUSR2, partieDejaCommence);
-    signal(SIGCHLD, signalReprise);
 
 
     int descW, descR;
     char prenom[50];
     char tableau[NBR_PERSONNAGES ][NBR_CARACTERES];
     char personnageselect[NBR_CARACTERES];
-    int lancement =0;
-
+    
     chdir("../pipe"); //Pour le faire fonctionner sur les autres machines
 
     /* On demande le nom du client, qui est tu ?*/
@@ -78,31 +71,13 @@ int main(void){
     write(descW, messageInitialisation, sizeof(MessageClientServeur));
     close(descW); // on ferme le descripteur
     sleep(1);
-    
-	printf("[CLIENT] 1\n");
-	
-	 //printf("\nAttente du lancement de la partie !\n");
 	
     descR=open(prenom,O_RDONLY); // on ouvre le pipe main en lecture
     read(descR, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES);
     read(descR, personnageselect, sizeof(char)*NBR_CARACTERES);
 	close(descR);
     
-    printf("[CLIENT] 2\n");
     printf("\nBase de données et élève mystère chargés !\nAttente du lancement de la partie !\n");
-    
-   /* while ( (descR=open(prenom,O_RDONLY))  == -1  )
-		printf("PUTAIN\n");
-		
-	char passage[8] ;
-	read(descR, passage, sizeof(passage));
-	close(descR);*/
-    
-    //clean_stdin();
-    
-	//pause();
-
-	 printf("[CLIENT] 3\n");
 	
     int resultat = menu(personnageselect, tableau);
 
@@ -143,11 +118,10 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
         printf("Program Error\n");
         exit(0);
     }
-     printf("[CLIENT] 4\n");
     
     do {
         //menu global       
-        //printf("\e[1;1H\e[2J");
+        printf("\e[1;1H\e[2J");
         printf("\n********** Bienvenue dans le menu du jeu QUI EST-CE ? **********\n");
         printf("|  0 | Quitter le programme\n");
         printf("|  1 | Saisie caracteristique\n");
@@ -287,13 +261,13 @@ int menu(char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES][NB
                 status = launch_regex(personnageselect, chaine_recherche);
                 if ((status == 0) || (status == 1)) {
                     if (status == 0) {
-                        printf("Votre personnage possède bien cette caractéristique\n");
+                        printf("Votre personnage possède bien cette caractéristique.\n");
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
 
                     }
                     if (status == 1) {
-                        printf("Votre personnage n'a pas cette caractéristique\n");
+                        printf("Votre personnage n'a pas cette caractéristique.\n");
                         printf("Appuyer sur une touche pour continuer.\n");
 						attenteTouche();
 
@@ -365,11 +339,11 @@ int launch_regex(char *elu, char *p_chaine_recherche){
 /* Execute regular expression */
     reti = regexec(&regex, elu, 0, NULL, 0);
     if (!reti) {
-        puts("Match");
+       // puts("Match");
         status = 0;
     }
     else if (reti == REG_NOMATCH) {
-        puts("No match");
+      //  puts("No match");
         status = 1;
     }
     else {

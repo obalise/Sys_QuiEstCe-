@@ -40,6 +40,9 @@ void clean_stdin(void)
     } while (c != '\n' && c != EOF);
 }
 
+void signalReprise(sig){
+	printf("FUCK\n");
+	}
 
 
 int main(void){
@@ -47,7 +50,7 @@ int main(void){
     signal(SIGINT, arretCTRLC); 
     signal(SIGUSR1, personnageTrouve);
     signal(SIGUSR2, partieDejaCommence);
-    signal(SIGCHLD, SIG_IGN);
+    signal(SIGCHLD, signalReprise);
 
 
     int descW, descR;
@@ -97,7 +100,7 @@ int main(void){
     
     //clean_stdin();
     
-	//pause();
+	pause();
 
 	 printf("[CLIENT] 3\n");
 	

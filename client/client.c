@@ -100,7 +100,7 @@ int main(void){
     
     //clean_stdin();
     
-	pause();
+	//pause();
 
 	 printf("[CLIENT] 3\n");
 	

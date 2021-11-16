@@ -160,8 +160,6 @@ int main(int argc, char *argv[], char *arge[])
     
 	
 	menuServeur(listeClient, listePidClient, dernierClient, tableau, personnageselect);
-	
-	int gregory =0;
 
 	printf("Attente des %d joueurs.\n", nbrJoueur);
 	
@@ -243,13 +241,11 @@ int main(int argc, char *argv[], char *arge[])
 
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 	while (nbrJoueur != 0){
-		printf("ARGH\n");
+		printf("Entrée Boucle Attente\n");
 		descR=open(main,O_RDONLY); //ouverture du pipe
 		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
 		read(descR, messageRecu, sizeof(MessageClientServeur)); 
@@ -261,12 +257,13 @@ int main(int argc, char *argv[], char *arge[])
 
 			if(test == 0){
 				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
-				printf("ARGH2\n");
+				printf("Après gestionNouveauClient\n");
 				
 				strcpy(listeClient[dernierClient], prenom);
 				listePidClient[dernierClient] = messageRecu->pid;
 				dernierClient++;
 				nbrJoueur--;
+				printf("nbrJoueur = %d\n", nbrJoueur);
 				
 			}else{
 				printf("Tentative de connexion d'une personne non autorisée !\n");
@@ -280,15 +277,15 @@ int main(int argc, char *argv[], char *arge[])
 	partieEnCours = 1;
 	
 	for(int i = 0; i<= dernierClient-1; i++){
-		printf("[YAYAYAYAYA] : ");
-		printf("Pid: %d\t", listePidClient[i]);
-		printf("%s",listeClient[i]);
+		printf("[Boucle For permettant d'envoyer un signal à chaque client] : ");
+		printf("Pid: %d  ", listePidClient[i]);
+		printf("Nom%s\n",listeClient[i]);
 		
 		kill(listePidClient[i], SIGCHLD);
 	}
 	
 	while (1){
-		printf("URGH\n");
+		printf("Début While permettant le traitement des messages remonter après le début du jeu\n");
 		descR=open(main,O_RDONLY); //ouverture du pipe
 		MessageClientServeur *messageRecu = malloc(sizeof(MessageClientServeur));
 		read(descR, messageRecu, sizeof(MessageClientServeur)); 
@@ -300,7 +297,7 @@ int main(int argc, char *argv[], char *arge[])
 
 			if(test == 0){
 				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
-				printf("URGH2\n");
+				printf("Après second gestionNouveauClient\n");
 				
 			}else{
 				printf("Tentative de connexion d'une personne non autorisée !\n");
@@ -328,7 +325,6 @@ int main(int argc, char *argv[], char *arge[])
 			gestionFinPartie(listeClient, listePidClient, dernierClient, gagnant);            //Il faut envoyer à tous les clients un message disant qu'on a un gagnant et on fait le fork exec pour le socket
 			status = 0;
 		}
-		
 	}
 	
 	
@@ -384,7 +380,7 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 
 void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], pid_t pid_client)
 {
-	printf("ARGH2,5\n");
+	printf("début fonction gestion Nouveau Client\n");
 	int pid2,descW;
     char chemin[9]= "./pipe/";
 	
@@ -401,7 +397,7 @@ void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CAR
 		write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
 		write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
 		close(descW);
-		printf("ARGH3\n");
+		printf("Après avoir envoyé au client le tableau et le personnage select\n");
 	}else if (partieEnCours == 1){
 		kill(pid_client, SIGUSR2);
 	}

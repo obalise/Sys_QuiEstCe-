@@ -40,6 +40,14 @@ void clean_stdin(void)
     } while (c != '\n' && c != EOF);
 }
 
+void attenteSignal(int sig){
+	printf("FUCK1\n");
+	pause();	
+}
+
+void repriseProgramme(int sig){
+	printf("FUCK2\n");
+}
 
 
 int main(void){
@@ -47,7 +55,8 @@ int main(void){
     signal(SIGINT, arretCTRLC); 
     signal(SIGUSR1, personnageTrouve);
     signal(SIGUSR2, partieDejaCommence);
-    signal(SIGCHLD, SIG_IGN);
+    signal(SIGILL, repriseProgramme);
+    signal(SIGCHLD, attenteSignal);
 
 
     int descW, descR;
@@ -74,7 +83,6 @@ int main(void){
     descW=open("main",O_WRONLY); // on ouvre le pipe main en ecriture
     write(descW, messageInitialisation, sizeof(MessageClientServeur));
     close(descW); // on ferme le descripteur
-    sleep(1);
     
 	printf("[CLIENT] 1\n");
 	

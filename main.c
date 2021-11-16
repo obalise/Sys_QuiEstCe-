@@ -279,9 +279,11 @@ int main(int argc, char *argv[], char *arge[])
 	for(int i = 0; i<= dernierClient-1; i++){
 		printf("[Boucle For permettant d'envoyer un signal à chaque client] : ");
 		printf("Pid: %d  ", listePidClient[i]);
-		printf("Nom%s\n",listeClient[i]);
+		printf("Nom: %s\n",listeClient[i]);
 		
-		kill(listePidClient[i], SIGCHLD);
+		sleep(3);
+		
+		//kill(listePidClient[i], SIGILL);
 	}
 	
 	while (1){
@@ -296,7 +298,8 @@ int main(int argc, char *argv[], char *arge[])
 			test=(strcmp(prenom,"Julien")*strcmp(prenom,"Florent")*strcmp(prenom,"Adrien")*strcmp(prenom,"Olivier"));	
 
 			if(test == 0){
-				gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
+				//gestionNouveauClient(prenom, tableau, personnageselect, messageRecu->pid);
+				kill(messageRecu->pid, SIGUSR2);
 				printf("Après second gestionNouveauClient\n");
 				
 			}else{
@@ -381,27 +384,30 @@ void return_tableau(char tableau[NBR_PERSONNAGES][NBR_CARACTERES]){
 void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CARACTERES ], char personnageselect[NBR_CARACTERES ], pid_t pid_client)
 {
 	printf("début fonction gestion Nouveau Client\n");
-	int pid2,descW;
+	int descW;
+	int pid;
     char chemin[9]= "./pipe/";
 	
-	//FORK ET CREATION DU PIPE CLIENT
-	pid2=fork();
-    if(pid2 == 0){
-	//printf("on est dans le fils de %s\n",prenom);
-	strcat(chemin,prenom);
-	unlink(chemin);
-	mkfifo(chemin,0666); 
+	pid = fork();
+	if (pid == 0){
+	
+		printf("on est dans le fils de %s\n",prenom);
+		strcat(chemin,prenom);
+		unlink(chemin);
+		mkfifo(chemin,0666); 
+		printf("on est dans le fils de %s\n",prenom);
 
-	if (partieEnCours == 0){
 		descW=open(chemin,O_WRONLY); //ouverture du pipe
 		write(descW, tableau, sizeof(char)*NBR_PERSONNAGES*NBR_CARACTERES );
 		write(descW, personnageselect, sizeof(char)*NBR_CARACTERES);
 		close(descW);
+		
+		printf("Milieu fonction gestion Nouveau Client\n");
+		
+		sleep(3);
+		
+		//kill(pid_client, SIGCHLD);
 		printf("Après avoir envoyé au client le tableau et le personnage select\n");
-	}else if (partieEnCours == 1){
-		kill(pid_client, SIGUSR2);
-	}
-	exit(0);
 	}
 }
 

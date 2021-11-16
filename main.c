@@ -389,8 +389,11 @@ void gestionNouveauClient(char prenom[50], char tableau[NBR_PERSONNAGES][NBR_CAR
     if(pid2 == 0){
 	//printf("on est dans le fils de %s\n",prenom);
 	strcat(chemin,prenom);
-	unlink(chemin);
-	mkfifo(chemin,0666); 
+	
+	if(unlink(chemin) < 0)
+		printf("UNLINK MARCHE PAS !\n");
+	if(mkfifo(chemin,0666) < 0)
+		printf("MKFIFO MARCHE PAS !\n");
 
 	if (partieEnCours == 0){
 		descW=open(chemin,O_WRONLY); //ouverture du pipe

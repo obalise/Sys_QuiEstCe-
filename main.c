@@ -322,11 +322,7 @@ void menuServeur(char listeClient [NBR_PERSONNAGES][NBR_CARACTERES], int listePi
 		printf("\n********** Bienvenue dans le menu Serveur du jeu QUI EST-CE ? **********\n");
 		printf("|  0 | Quitter le programme\n");
 		printf("|  1 | Voir l'élève mystère actuel\n");
-
 		printf("|  2 | Génération de l'élève mystère\n");
-
-		printf("|  2 | Génération de l'élève mystère (deconnexion forcée des joueurs actuels)\n");
-
 		printf("|  3 | Selection nombre de Client attendu\n");	
 		printf("|  4 | Début attente des joueur(s) : %d joueurs prévus\n", nbrJoueur);	
 		

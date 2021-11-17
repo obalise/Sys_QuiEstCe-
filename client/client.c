@@ -24,7 +24,7 @@ typedef struct messageClientServeur {
 } MessageClientServeur;
 
 
-/*/Protorypes des fonctions/*/
+/*/Prototypes des fonctions/*/
 int menu (char personnageselect[NBR_CARACTERES], char tableau[NBR_PERSONNAGES ][NBR_CARACTERES]);
 void strcpy_pointeur(char *, char);
 int launch_regex(char *, char *);
